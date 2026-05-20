@@ -1,0 +1,11 @@
+# Fichiers de configuration sensibles
+appsettings.json
+appsettings.*.json
+
+# Dossiers Visual Studio
+bin/
+obj/
+.vs/
+
+# Variables d'environnement
+*.env

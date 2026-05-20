@@ -1,0 +1,971 @@
+﻿@page
+@using System.Globalization
+@using TableTennisHistoric.DTO
+@model IndexModel
+@{
+    ViewData["Title"] = "Mon espace - Historique tennis de table";
+
+    // Conversion des clés/valeurs du dictionnaire pour JS
+    var labels = Model.DetailedResults.Keys.ToArray();
+    var values = Model.DetailedResults.Values.ToArray();
+}
+
+<!-- Modal Bootstrap pour la création d'une saison en cours -->
+<div class="modal fade" id="seasonModal" tabindex="-1" aria-labelledby="seasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="seasonModalLabel">Créer une saison</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Aucune saison n'existe. Souhaitez-vous en créer une maintenant ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="createSeasonBtn">Créer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulaire caché pour l'anti-forgery token -->
+<form id="antiForgeryForm" method="post">
+    @Html.AntiForgeryToken()
+</form>
+
+<form method="get">
+    <select asp-for="SelectedSeasonId"
+            asp-items="Model.SeasonsSelectList"
+            class="form-select text-center fs-4"
+            onchange="this.form.submit()">
+    </select>
+</form>
+
+<h1 class="mb-3 mt-5 d-flex justify-content-center">
+    Mon espace - @Model.PlayerMe.First_name @Model.PlayerMe.Last_name
+</h1>
+
+<h3 class="my-3 d-flex justify-content-center text-end fs-4">
+    Points début de saison : @(Model.PointsBeginningSeason?.ToString("0.##") ?? "-") |
+    Points mensuels : @(Model.MonthlyPoints?.ToString("0.###") ?? "-") |
+    Points virtuels : @(Model.VirtualPoints?.ToString("0.###") ?? "-")
+</h3>
+
+<!-- Evolution mensuelle des points -->
+<h3 class="text-center my-4">Évolution mensuelle des points</h3>
+<canvas id="pointsChart" width="624" height="275"></canvas>
+
+
+<!-- Graphique en nuage de points du classement des adversaires affrontés dans le temps -->
+<h3 class="text-center my-4">Nuage de points du classement des adversaires</h3>
+<canvas id="opponentScatterChart" width="600" height="250"></canvas>
+
+
+<h3 class="text-center my-4">Les matches de la @(Model.SeasonDTO?.Name.ToLower() ?? "saison")</h3>
+<div class="my-3 fs-5">
+    <div class="d-flex justify-content-center align-items-center gap-4">
+
+        <!-- Mini graphique à gauche -->
+        <div class="chart-container" style="max-width: 400px; width: 100%;">
+            <canvas id="victoryGauge"></canvas>
+        </div>
+
+        <!-- Camembert détaillé à droite -->
+        <div class="chart-container" style="max-width: 400px; width: 100%;">
+            <canvas id="detailedResultsChart"></canvas>
+        </div>
+
+        <div style="max-width: 400px; width: 100%;">
+            <!-- Adversaire le plus fort et le plus faible -->
+            @{
+                if (Model.MatchesDTO.Count == 0)
+                {
+                    <h4>Adversaire le plus fort : -</h4>
+                    <h4>Adversaire le plus faible : -</h4>
+                }
+                else
+                {
+                    var LargestPointGapBadge = Model.ResultLargestPointGap == "Victoire" ? "bg-success" : "bg-danger";
+                    var SmallestPointGapBadge = Model.ResultSmallestPointGap == "Victoire" ? "bg-success" : "bg-danger";
+                    <h4>
+                        Adversaire le plus fort :
+                        @(Model.LargestPointGap > 0 ? "+" : "")@Model.LargestPointGap.ToString("0.###") points 
+                        <span class='badge @LargestPointGapBadge fs-6'>@Model.ResultLargestPointGap</span>
+                    </h4>
+                    <h4>
+                        Adversaire le plus faible :
+                        @(Model.SmallestPointGap > 0 ? "+" : "")@Model.SmallestPointGap.ToString("0.###") points 
+                        <span class='badge @SmallestPointGapBadge fs-6'>@Model.ResultSmallestPointGap</span>
+                    </h4>
+                }
+            }
+            <!-- Meilleure victoire et pire défaite -->
+            @{
+
+                if (Model.CounterOfVictory == 0)
+                {
+                    <h4>Meilleure victoire : -</h4>
+                }
+                else
+                {
+                    <h4>Meilleure victoire : @(Model.LargestPointGapWithVictory > 0 ? "+" : "")@Model.LargestPointGapWithVictory.ToString("0.###") points</h4>
+                }
+            }
+            @{
+                if (Model.CounterOfDefeat == 0)
+                {
+                    <h4>Pire défaite : -</h4>
+                }
+                else
+                {
+                    <h4>Pire défaite : @(Model.SmallestPointGapWithDefeat > 0 ? "+" : "")@Model.SmallestPointGapWithDefeat.ToString("0.###") points</h4>
+                }
+            }
+        </div>
+
+    </div>
+</div>
+
+<div class="d-flex justify-content-center align-items-start gap-5">
+
+    <!-- Résultats par nombre de sets -->
+    <div class="text-center col-6">
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <canvas id="victorySetsChart" style="max-width: 100%; height: 190px;"></canvas>
+            </div>
+
+            <div class="col-md-6">
+                <canvas id="defeatSetsChart" style="max-width: 100%; height: 190px;"></canvas>
+            </div>
+        </div>
+        @{
+            // Extrait les clés
+            var setLabels = Model.VictoriesNbOfSets.Keys.OrderBy(k => k).ToList();
+
+            // Répartition des victoires selon le nombre de sets
+            var victoriesPercent = setLabels
+            .Select(k => Model.CounterOfVictoryWithSet == 0 ? 0 : Math.Round((decimal)Model.VictoriesNbOfSets[k] / Model.CounterOfVictoryWithSet * 100, 1))
+            .ToList();
+
+            // Répartition des défaites selon le nombre de sets
+            var defeatsPercent = setLabels
+            .Select(k => Model.CounterOfDefeatWithSet == 0 ? 0 : Math.Round((decimal)Model.DefeatsNbOfSets[k] / Model.CounterOfDefeatWithSet * 100, 1))
+            .ToList();
+
+        }
+    </div>
+
+    <!-- Distribution des adversaires -->
+    <div class="text-center col-6">
+        <div class="mt-4">
+            <canvas id="opponentChart" style="max-width: 100%; height: 190px;"></canvas>
+        </div>
+    </div>
+
+    @{
+        var opponentLabels = Model.VictoryDistributionOrdered.Keys.ToList();
+        var victoryValues = Model.VictoryDistributionOrdered.Values
+        .Select(v => v)
+        .ToList();
+        var defeatValues = Model.DefeatDistributionOrdered.Values
+        .Select(v => v)
+        .ToList();
+    }
+
+</div>
+
+<!-- Tableau des matchs joués sur la saison en cours -->
+<table class="table table-striped mt-5">
+    @foreach (var matchDTO in Model.SortedMatchesDTO.Reverse())
+    {
+        int theYear = Model.SeasonDTO != null ? (matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year : Model.SeasonDTO.End_date.Year) : 3000;
+        @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today)
+        {
+            <thead class="table-light">
+                <tr>
+                    <th colspan="12" class="fw-bold fs-4 text-start table-primary">
+                        @{
+                            var monthName = System.Globalization.CultureInfo.CurrentCulture
+                            .DateTimeFormat
+                            .GetMonthName(matchDTO.Key);
+                            monthName = char.ToUpper(monthName[0]) + monthName.Substring(1);
+                            var year = matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year.ToString() : Model.SeasonDTO.End_date.Year.ToString();
+                            var pointsAtMatch = Model.MonthliesPointsOrdered[new DateOnly(int.Parse(year), matchDTO.Key, 1)];
+                        }
+                        @monthName @year
+                        (@matchDTO.Value.Count match@(matchDTO.Value.Count > 1 ? "s" : "")) - @(pointsAtMatch?.ToString("0.00") ?? "-") points
+
+                    </th>
+                </tr>
+                @if (matchDTO.Value.Count > 0)
+                {
+                    <tr>
+                        <th>Date</th>
+                        <th>Compétition</th>
+                        <th>Stade</th>
+                        <th class="text-center">Coeff.</th>
+                        <th>Adversaire</th>
+                        <th>Club</th>
+                        <th>Points adversaire</th>
+                        <th>Ecart</th>
+                        <th>Résultat</th>
+                        <th>Détail</th>
+                        <th>Gain</th>
+                        <th>Action</th>
+                    </tr>
+                }
+            </thead>
+            <tbody>
+                @{
+                    DateOnly matchDate = matchDTO.Value.Count > 0 ? matchDTO.Value[0].Date_of_match : new DateOnly(2001, 1, 1);
+                }
+                @foreach (var match in matchDTO.Value)
+                {
+                    @if (match.Date_of_match != matchDate)
+                    {
+                        <tr class="gap-row">
+                            <td colspan="12" style="height:6px;"></td>
+                        </tr>
+                        matchDate = match.Date_of_match;
+                    }
+                    <tr title="@match.Comment">
+                        <td>@match.Date_of_match.ToShortDateString()</td>
+                        <td>@match.Competition</td>
+                        <td>@(match.Stage_name ?? "")</td>
+                        <td class="text-center">@match.Coefficient.ToString("0.##")</td>
+                        <td>
+                            <a asp-page="/OpponentsHistoric"
+                               asp-route-SelectedOpponentId="@match.OpponnentId"
+                               target="_blank"
+                               class="text-decoration-none text-primary fw-semibold opponent-link"
+                               title="Voir l'historique des matchs contre @match.Opponent_full_name">
+
+                                @match.Opponent_full_name
+                                <i class="bi bi-box-arrow-up-right ms-1 small opacity-75"></i>
+                            </a>
+                            @if (!string.IsNullOrEmpty(match.Comment))
+                            {
+                                <i class="bi bi-chat-square-text-fill text-warning"
+                                   data-bs-toggle="tooltip">
+                                </i>
+                            }
+                        </td>
+                        <td>@match.Opponent_club</td>
+                        <td>@match.Opponent_points_at_match.ToString("0.###")</td>
+                        <td>@(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.###")</td>
+                        <td>
+                            @{
+                                string resultText = match.Result switch
+                                {
+                                    DTO.MatchDTO.MatchResult.V => (match.Point_difference) >= 25
+                                    ? "<span class='badge bg-success fs-6'>Victoire</span>"
+                                    : "<span class='badge bg-primary fs-6'>Victoire</span>",
+                                    DTO.MatchDTO.MatchResult.D => (match.Point_difference) >= -25
+                                    ? "<span class='badge bg-orange fs-6'>Défaite</span>"
+                                    : "<span class='badge bg-danger fs-6'>Défaite</span>",
+                                    DTO.MatchDTO.MatchResult.F => "<span class='badge bg-secondary text-white fs-6'>Forfait</span>",
+                                    _ => ""
+                                };
+                            }
+                            @Html.Raw(resultText)
+                        </td>
+                        <td>
+                            @if (match.MatchSets != null)
+                            {
+                                <table class="sets-table">
+                                    <tr>
+                                        @{
+                                            foreach (var set in match.MatchSets)
+                                            {
+                                                <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                                    @set.Player1Score
+                                                </td>
+                                            }
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @{
+                                            foreach (var set in match.MatchSets)
+                                            {
+                                                <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                                    @set.Player2Score
+                                                </td>
+                                            }
+                                        }
+                                    </tr>
+                                </table>
+                            }
+                        </td>
+                        <td>@(match.Gain > 0 ? "+" : "")@match.Gain.ToString("0.###")</td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a asp-page="/Matches/UpdateMatch"
+                                   asp-route-id="@match.Id"
+                                   class="btn btn-sm btn-outline-warning"
+                                   title="Modifier le match">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        title="Supprimer le match"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-bs-matchid="@match.Id"
+                                        data-bs-opponent="@match.Opponent_full_name">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        }
+    }
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+
+<!-- Affichage du texte au survol des joueurs -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el))
+    });
+</script>
+
+<!-- Graphique en courbe de l'évolution des points dans le temps -->
+<script>
+    (() => {
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('pointsChart');
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthLabels));
+        const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthValues));
+        const rankingPointsMaxValue = @Model.RankingMaxValue;
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        align: 'top',
+                        anchor: 'end',
+                        color: '#333',
+                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                    formatter: function (value) {
+                        if (value == null) return '';
+
+                        // Si la valeur est entière, on la renvoie sans décimales
+                        if (Number.isInteger(value)) {
+                            return value.toString();
+                        }
+
+                        // Sinon, on garde 2 chiffres après la virgule
+                        return value.toFixed(2);
+                    }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        max: rankingPointsMaxValue + 20
+                    }
+                },
+                layout: {
+                    padding: {right: 24}
+                }
+            },
+            plugins: [ChartDataLabels],
+        });
+        });
+    })();
+</script>
+
+<!-- Graphique en nuage de points du classement des adversaires affrontés -->
+<script>
+    const scatterData = [
+    @foreach (var match in Model.MatchesDTO)
+    {
+            var dateTime = match.Date_of_match.ToDateTime(TimeOnly.MinValue);
+            var color = match.Result switch
+            {
+                    MatchDTO.MatchResult.V => "rgba(40, 167, 69, 0.8)",
+                    MatchDTO.MatchResult.D => "rgba(220, 53, 69, 0.8)",
+                    MatchDTO.MatchResult.F => "rgba(108, 117, 125, 0.8)",
+                    _ => "rgba(54, 162, 235, 0.8)"
+            };
+
+            <text>
+            {
+                x: new Date("@dateTime.ToString("yyyy-MM-ddTHH:mm:ss")"),
+                y: @match.Opponent_points_at_match.ToString(CultureInfo.InvariantCulture),
+                backgroundColor: "@color",
+                borderColor: "@color",
+                result: "@match.Result"
+            },
+            </text>
+    }
+    ];
+
+    const ctx = document.getElementById('opponentScatterChart').getContext('2d');
+
+    const lineLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthliesPointsOrderedFiltered.Keys));
+    const lineDatas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthliesPointsOrderedFiltered.Values));
+
+    const finalLineDatas = lineLabels.map((date, i) => ({
+      x: new Date(date),
+      y: lineDatas[i]
+    }));
+
+    // Création du dégradé pour le fond
+    const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+    gradient.addColorStop(0, '#1e1e2f');  // Haut sombre
+    gradient.addColorStop(1, '#2c2c44');  // Bas plus clair
+
+    new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+            {
+                label: 'Points des adversaires',
+                data: scatterData,
+                backgroundColor: scatterData.map(d => d.backgroundColor),
+                borderColor: scatterData.map(d => d.borderColor),
+                parsing: true
+            },
+            {
+                label: 'Évolution des points',
+                data: finalLineDatas,
+                type: 'line',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                // tension: 0.3,
+                tension: 0,
+                fill: false,
+                pointRadius: 0,
+                borderWidth: 2,
+                parsing: true
+            }
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutBounce'  // effet “rebond” à l'apparition des points
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#2c3e50',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#34495e',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context){
+                            const date = new Date(context.parsed.x);
+                            const formattedDate = new Intl.DateTimeFormat('fr-FR').format(date);
+                            const points = context.parsed.y;
+                            const result = context.raw.result;
+                            return `${formattedDate} : ${points} points (${result})`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'month',
+                        tooltipFormat: 'dd/MM/yyyy',
+                        displayFormats: {
+                            month: 'MMM yyyy'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date du match',
+                        color: '#ffffff',
+                        font: { weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    min: new Date(@Model.SeasonDTO.Start_date.Year.ToString() + "-09-01T00:00:00")
+                },
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Points adversaire',
+                        color: '#ffffff',
+                        font: { weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 6,
+                    hoverRadius: 10,
+                    borderWidth: 1
+                }
+            },
+            layout: {
+                padding: 20
+            }
+        },
+        plugins: [{
+            id: 'gradientBackground',
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, chart.width, chart.height);
+                ctx.restore();
+            }
+        }]
+    });
+</script>
+
+<!-- Graphique en camembert du ratio victoire/défaite -->
+<script>
+    (() => {
+        const victoryPercentage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VictoryPercentage));
+        const ctxVictory = document.getElementById('victoryGauge').getContext('2d');
+        const nbOfMatch = @Model.MatchesDTO.Count;
+
+        new Chart(ctxVictory, {
+            type: 'doughnut',
+            data: {
+                labels: ["Victoires", "Défaites"],
+                datasets: [{
+                    data: [victoryPercentage, 100 - victoryPercentage],
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.8)',
+                        'rgba(255, 0, 0, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '60%',
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    title: { display: true, text: 'Pourcentage victoires/défaites', color: 'black' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + (nbOfMatch * context.raw.toFixed(2) / 100).toFixed(0) + ' (' + context.raw.toFixed(2) + '%)';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'center',
+                        align: 'center',
+                            formatter: function (value, context) {
+                                if (value == null || isNaN(value)) {
+                                    return "";
+                                }
+                                return value.toFixed(2) + '%';
+    }
+                    },
+                    centerText: {
+                        text: [@Model.MatchesDTO.Count + ' matchs'],
+                        fontSize: 38,
+                        fontFamily: 'Arial',
+                        color: '#000'
+                    }
+                }
+            },
+            plugins: [ChartDataLabels,
+                     {
+                        id: 'centerText',
+                        afterDraw(chart, args, options) {
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            const arc = meta.data[0];
+                            const centerX = arc.x;
+                            const centerY = arc.y;
+
+                            ctx.save();
+                            ctx.font = options.fontSize + "px " + options.fontFamily;
+                            ctx.fillStyle = options.color;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(options.text, centerX, centerY);
+                            ctx.restore();
+                        }
+                }]
+        });
+    })();
+</script>
+
+<!-- Graphique en camembert de la répartition des résultats des matchs joués -->
+<script>
+    (() => {
+    const resultLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels));
+    const resultData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(values));
+
+    const ctx = document.getElementById('detailedResultsChart').getContext('2d');
+    const detailedResultsPie = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: resultLabels,
+            datasets: [{
+                label: 'Nombre',
+                data: resultData,
+                backgroundColor: [
+                    'rgba(25, 135, 84, 0.6)',
+                    'rgba(13, 110, 253, 0.6)',
+                    'rgba(253, 126, 20, 0.6)',
+                    'rgba(255, 0, 0, 0.6)',
+                    'rgba(147, 147, 147, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(253, 147, 39, 1)',
+                    'rgba(255, 0, 0, 1)',
+                    'rgba(130, 130, 130, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Répartition des résultats des matchs',
+                    color: 'black'
+                },
+                datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                    }
+            }
+        },
+        plugins: [ChartDataLabels]
+        });
+    })();
+</script>
+
+<!-- Graphique en barres de la répartition des victoires par nombre de sets  -->
+<script>
+    const ctxVictorySets = document.getElementById('victorySetsChart');
+    const victorySetLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(setLabels.Select(s => s + " sets")));
+
+    const victorySetsChart = new Chart(ctxVictorySets, {
+        type: 'bar',
+        data: {
+            labels: victorySetLabels,
+            datasets: [
+                {
+                    label: 'Victoires',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(victoriesPercent)),
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            scales: {
+                x: {
+                    min: 0,
+                    max: 100,
+                    reverse: true,
+                    ticks: {
+                        callback: value => value + '%',
+                        color: 'black'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: 'black'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Distribution des victoires par nombre de sets',
+                    color: 'black'
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Victoires : ' + (context.parsed.x / 100 * @Model.CounterOfVictory).toFixed(0) + ' (' + context.parsed.x.toFixed(1) + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Graphique en barres de la répartition des défaites par nombre de sets  -->
+<script>
+    const ctxDefeatSets = document.getElementById('defeatSetsChart');
+
+    const defeatSetsChart = new Chart(ctxDefeatSets, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(setLabels.Select(s => s + " sets"))),
+            datasets: [
+                {
+                    label: 'Défaites (%)',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(defeatsPercent)),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            scales: {
+                x: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        callback: v => v + '%',
+                        color: 'black'
+                    }
+                },
+                y: {
+                    position: 'right',
+                    ticks: {
+                        color: 'black'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Distribution des défaites par nombre de sets',
+                    color: 'black'
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Défaites : ' + (context.parsed.x / 100 * @Model.CounterOfDefeat).toFixed(0) + ' (' + context.parsed.x.toFixed(1) + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Graphique en barres de la distribution des résultats par classement des adversaires -->
+<script>
+    const ctxOpponent = document.getElementById('opponentChart');
+
+    const opponentChart = new Chart(ctxOpponent, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(opponentLabels)),
+            datasets: [{
+                label: 'Proportion (%)',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(victoryValues)),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Proportion (%)',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(defeatValues)),
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                    min: 0,
+                    max: @(Model.VictoryDefeatMaxGauge + 2),
+                    ticks: {
+                        callback: value => value,
+                        color: 'black'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    ticks: { color: 'black' }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Distribution des résultats par classement des adversaires',
+                    color: 'black'
+                },
+                    tooltip: {
+            callbacks: {
+                title: (tooltipItems) =>{
+                    return 'Classement ' + tooltipItems[0].label;
+                },
+                label: function (ctx) {
+                    const datasets = ctx.chart.data.datasets;
+                    const index = ctx.dataIndex;
+
+                    const victory = datasets[0].data[index] || 0;
+                    const defeat = datasets[1].data[index] || 0;
+                    const total = victory + defeat;
+
+                    const value = ctx.parsed.x;
+                    const percentage = total > 0
+                        ? ((value / total) * 100).toFixed(1)
+                        : 0;
+
+                    const label = ctx.datasetIndex === 0 ? 'victoire' : 'défaite';
+
+                    return `${value} ${label}${value > 1 ? 's' : ''} (${percentage}%)`;
+                }
+            }
+            }
+            }
+        }
+    });
+</script>
+
+
+<!-- Modale de suppression d'un match' -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le match contre <strong id="opponentName"></strong> ?</p>
+                <p class="text-muted small">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-page-handler="Delete">
+                    <input type="hidden" name="matchId" id="modalMatchId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <!-- Suppression d'un match -->
+    <script>
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget; // Bouton qui a déclenché la modale
+                const matchId = button.getAttribute('data-bs-matchid');
+                const opponent = button.getAttribute('data-bs-opponent');
+
+                // Mise à jour des champs de la modale
+                const modalInput = deleteModal.querySelector('#modalMatchId');
+                const modalOpponentText = deleteModal.querySelector('#opponentName');
+
+                modalInput.value = matchId;
+                modalOpponentText.textContent = opponent;
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Ouvre la modale si ShowSeasonModal = true côté PageModel
+            var showModal = @Model.ShowSeasonModal.ToString().ToLower();
+
+            if (showModal) {
+                var seasonModal = new bootstrap.Modal(document.getElementById('seasonModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                seasonModal.show();
+            }
+
+            // Bouton "Créer"
+            document.getElementById("createSeasonBtn").addEventListener("click", function () {
+                var token = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]').value;
+
+                fetch('?handler=CreateSeasonAutomatically', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    body: `__RequestVerificationToken=${token}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // La saison est créée → recharge la page
+                        location.reload();
+                    } else {
+                        alert("Erreur lors de la création de la saison !");
+                    }
+                });
+            });
+        });
+    </script>
+}

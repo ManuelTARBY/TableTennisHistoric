@@ -1,0 +1,240 @@
+﻿@page
+@model TableTennisHistoric.Pages.Championship.CreateModel
+@{
+    ViewData["Title"] = "Gestion championnats";
+}
+
+<div>
+    <h2 class="my-4">Créer un championnat</h2>
+
+    <form method="post" asp-page-handler="CreateChampionship">
+
+        <!-- Ligne 1 : Saison + Phase -->
+        <div class="row">
+
+            <!-- Saison -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Saison</label>
+                <select asp-for="CSSeasonId" class="form-select" asp-items="Model.SeasonSelectList">
+                    <option value="">-- Sélectionner une saison --</option>
+                </select>
+            </div>
+
+            <!-- Phase -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Phase</label>
+
+                <div class="d-flex gap-3 mt-2">
+                    @for (int i = 1; i <= 2; i++)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   asp-for="CSPhase"
+                                   value="@i"
+                                   id="phase_@i" />
+                            <label class="form-check-label" for="phase_@i">
+                                @i
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+            </div>
+
+        </div>
+
+        <!-- Ligne 2 : Rang + Niveau + Poule -->
+        <div class="row">
+
+            <!-- Rang -->
+            <div class="col-md-4 mb-3">
+                <label asp-for="CSRank" class="form-label fw-bold mb-2">Rang</label>
+
+                <div class="d-flex gap-2">
+                    @foreach (var rank in Models.Championship.RankLabels)
+                    {
+                        <div>
+                            <input type="radio"
+                                   class="btn-check"
+                                   asp-for="CSRank"
+                                   name="CSRank"
+                                   value="@rank.Key"
+                                   id="rank_@rank.Key"
+                                   autocomplete="off" />
+
+                            <label class="btn btn-outline-primary px-3 py-2 fw-semibold"
+                                   for="rank_@rank.Key">
+                                @rank.Value
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <span asp-validation-for="CSRank" class="text-danger"></span>
+            </div>
+
+            <!-- Niveau -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Niveau</label>
+
+                <div class="d-flex gap-3 mt-2">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   asp-for="CSLevel"
+                                   value="@i"
+                                   id="level_@i" />
+                            <label class="form-check-label" for="level_@i">
+                                @i
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Poule -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Poule</label>
+
+                <div class="d-flex gap-3 mt-2">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   asp-for="CSGroup"
+                                   value="@i"
+                                   id="group_@i" />
+                            <label class="form-check-label" for="group_@i">
+                                @i
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="CSBeginning" class="form-label fw-bold">Date de début</label>
+                <input asp-for="CSBeginning"
+                       type="date"
+                       class="form-control" />
+                <span asp-validation-for="CSBeginning" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="CSEnding" class="form-label fw-bold">Date de fin</label>
+                <input asp-for="CSEnding"
+                       type="date"
+                       class="form-control" />
+                <span asp-validation-for="CSEnding" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Créer le championnat</button>
+
+    </form>
+
+    <h2 class="my-4">Assigner les équipes</h2>
+    <form method="post" asp-page-handler="SelectTeamCount">
+        <div class="row">
+            <div class="col-4">
+                <label>Championnat</label>
+                <select asp-for="SelectedChampionshipId" class="form-select">
+                    <option value="">-- Sélectionnez --</option>
+                    @foreach (var c in Model.Championships)
+                    {
+                        <option value="@c.Id">@c.Season.Name Phase @c.Phase @Model.ConvertRank[c.Rank][0]@c.Level Poule @c.ChampionshipGroup</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-2">
+                <label>Nombre d'équipes</label>
+                <input asp-for="TeamCount" type="number" min="1" class="form-control" />
+            </div>
+
+            <div class="col-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Valider</button>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.TeamLines?.Any() == true)
+    {
+        <form method="post" asp-page-handler="SaveTeams">
+            <!-- Champ caché pour envoyer l'ID du championnat -->
+            <input type="hidden" asp-for="SelectedChampionshipId" />
+
+            <table class="table mt-4">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Club</th>
+                        <th>Équipe du club</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.TeamLines.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Model.TeamLines[i].Number
+                                <input type="hidden" asp-for="TeamLines[i].Number" />
+                            </td>
+
+                            <td>
+                                <select asp-for="TeamLines[i].ClubId"
+                                        class="form-select club-select"
+                                        data-line="@i">
+                                    <option value="">-- Sélectionnez --</option>
+                                    @foreach (var club in Model.Clubs)
+                                    {
+                                        <option value="@club.Id">@club.Name</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td>
+                                <select asp-for="TeamLines[i].TeamId"
+                                        class="form-select team-select"
+                                        id="team-select-@i">
+                                    <option value="">-- Sélectionnez un club d'abord --</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-success">Enregistrer les équipes</button>
+        </form>
+
+    }
+</div>
+
+<script>
+    document.querySelectorAll('.club-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+            const line = e.target.dataset.line;
+            const clubId = e.target.value;
+
+            const teamSelect = document.getElementById(`team-select-${line}`);
+
+            const response = await fetch(`?handler=TeamsByClub&clubId=${clubId}`);
+            const teams = await response.json();
+
+            teamSelect.innerHTML = '<option value="">-- Sélectionnez --</option>';
+
+            teams.forEach(t => {
+                teamSelect.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+            });
+        });
+    });
+</script>
+

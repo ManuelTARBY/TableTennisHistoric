@@ -1,0 +1,81 @@
+﻿@page
+@model TableTennisHistoric.Pages.Players.RankingHistoryModel
+@{
+    ViewData["Title"] = "Historique de classement";
+}
+
+<h1 class="mb-4 text-center">Historique de classement</h1>
+
+<!-- Graphique de l'évolution des points dans le temps -->
+<canvas id="pointsHistoryChart" width="600" height="250"></canvas>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- Graphique en courbe de l'évolution des points dans le temps -->
+<script>
+    (() => {
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('pointsHistoryChart');
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RankingHistory.Keys))
+        const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RankingHistory.Values))
+        const minValue = 500;
+        const rankingPointsMaxValue = @Model.RankingMaxValue
+
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        align: 'top',
+                        anchor: 'end',
+                        color: '#333',
+                        backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                    formatter: function (value) {
+                        if (value == null) return '';
+
+                        // Si la valeur est entière, on la renvoie sans décimales
+                        if (Number.isInteger(value)) {
+                            return value.toString();
+                        }
+
+                        // Sinon, on garde 2 chiffres après la virgule
+                        return value.toFixed(2);
+                    }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: minValue,
+                        max: rankingPointsMaxValue,
+                        beginAtZero: false
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+        });
+    })();
+</script>

@@ -1,0 +1,114 @@
+﻿@page
+@model TableTennisHistoric.Pages.CompetitionsModel
+
+<h1 class="mb-4">Gestion des compétitions</h1>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @Model.StatusMessage
+    </div>
+}
+
+<div class="row">
+    <!-- Liste des compétitions -->
+    <div class="col-md-7">
+        <h2>Liste des compétitions</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var competition in Model.Competition)
+                {
+                    <tr>
+                        <td>@competition.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulaire d'ajout -->
+    <div class="col-md-5">
+        <h2>Ajouter une compétition</h2>
+        <form method="post" asp-page-handler="CreateCompetition">
+            <div class="mb-3">
+                <label asp-for="NewCompetition.Name" class="form-label">Nom</label>
+                <input asp-for="NewCompetition.Name" class="form-control" placeholder="Nom de la compétition" />
+            </div>
+            <button type="submit" class="btn btn-primary">Ajouter</button>
+        </form>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <!-- Liste des compétitioncoefficient -->
+    <div class="col-md-7">
+        <h2>Liste des compétitions de la saison en cours avec leur coefficient</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Coefficient</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cc in Model.CompetitionWithCoefficient)
+                {
+                    <tr>
+                        <td>@cc.CompetitionName</td>
+                        <td>@cc.CompetitionCoefficient.ToString("0.##")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulaire d'ajout CompetitionCoefficient -->
+    <div class="col-md-5">
+        <h2>Ajouter une compétition pour la saison</h2>
+
+        <form method="post" asp-page-handler="CreateCompetitionCoefficient">
+
+            <!-- Sélection de la compétition -->
+            <div asp-validation-summary="All" class="mb-3">
+                <label asp-for="NewCompetitionCoefficient.CompetitionId" class="form-label">Compétition</label>
+                <select asp-for="NewCompetitionCoefficient.CompetitionId"
+                        asp-items="Model.CompetitionList"
+                        class="form-select">
+                    <option value="">-- Choisir une compétition --</option>
+                </select>
+            </div>
+
+            <!-- Sélection de la saison -->
+            <div class="mb-3">
+                <label asp-for="NewCompetitionCoefficient.SeasonId" class="form-label">Saison</label>
+                <select asp-for="NewCompetitionCoefficient.SeasonId"
+                        asp-items="Model.SeasonList"
+                        class="form-select">
+                    <option value="">-- Choisir une saison --</option>
+                </select>
+            </div>
+
+            <!-- Coefficient -->
+            <div class="mb-3">
+                <label asp-for="NewCompetitionCoefficient.Coefficient" class="form-label">Coefficient</label>
+                <input asp-for="NewCompetitionCoefficient.Coefficient"
+                       class="form-control"
+                       type="text"
+                       data-val="false"
+                       placeholder="ex : 0.50" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Ajouter</button>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

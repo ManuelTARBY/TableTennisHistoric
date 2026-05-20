@@ -1,0 +1,75 @@
+﻿@page
+@using TableTennisHistoric.Models
+@model TableTennisHistoric.Pages.Matches.CreateMatchModel
+@{
+    ViewData["Title"] = "Ajouter un match";
+}
+
+<h2>Ajouter un match</h2>
+
+<form method="post">
+
+    <!-- DATE -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.Date_match" class="form-label fw-bold"></label>
+        <input asp-for="Input.Date_match" type="date" class="form-control" />
+        <span asp-validation-for="Input.Date_match" class="text-danger"></span>
+    </div>
+
+    <!-- COMPETITION -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.CompetitionCoefficientId" class="form-label fw-bold">Compétition</label>
+        <select asp-for="Input.CompetitionCoefficientId"
+                asp-items="Model.CompetitionCoefficients"
+                class="form-select">
+            <option value="">-- Sélectionner une compétition --</option>
+        </select>
+        <span asp-validation-for="Input.CompetitionCoefficientId" class="text-danger"></span>
+    </div>
+
+    <!-- OPPOSANT -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.OpponentId" class="form-label fw-bold">Adversaire</label>
+        <select asp-for="Input.OpponentId"
+                asp-items="Model.Opponents"
+                class="form-select">
+            <option value="">-- Sélectionner un adversaire --</option>
+        </select>
+        <span asp-validation-for="Input.OpponentId" class="text-danger"></span>
+    </div>
+
+    <!-- MES POINTS -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.My_points_at_match" class="form-label fw-bold"></label>
+        <input asp-for="Input.My_points_at_match" class="form-control" />
+        <span asp-validation-for="Input.My_points_at_match" class="text-danger"></span>
+    </div>
+
+    <!-- POINTS ADVERSAIRE -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.Opponent_points_at_match" class="form-label fw-bold"></label>
+        <input asp-for="Input.Opponent_points_at_match" class="form-control" />
+        <span asp-validation-for="Input.Opponent_points_at_match" class="text-danger"></span>
+    </div>
+
+    <!-- RESULTAT -->
+    <div class="form-group mb-3">
+        <label asp-for="Input.Result" class="form-label fw-bold">Résultat</label>
+        <select asp-for="Input.Result" class="form-select">
+            <option value="">-- Sélectionner un résultat --</option>
+            @foreach (var value in Enum.GetValues(typeof(TableTennisMatch.MatchResult)))
+            {
+                <option value="@value">@value</option>
+            }
+        </select>
+        <span asp-validation-for="Input.Result" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Enregistrer</button>
+    <a asp-page="Index" class="btn btn-secondary mt-3">Annuler</a>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

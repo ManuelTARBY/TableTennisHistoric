@@ -1,0 +1,97 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.normal-victory {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.normal-defeat {
+    color: #fd7e14;
+    font-weight: bold;
+}
+
+.gap-row td {
+    height: 6px;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 0;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.columnSet {
+    text-align: center;
+    border-radius: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.btn-check:checked + label {
+    background-color: #0d6efd;
+    color: white !important;
+    border-color: #0d6efd;
+}
+
+.bg-orange {
+    background-color: rgba(253, 126, 20, 1);
+}
+
+.bg-card {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+.sets-table {
+    width: auto !important;
+    border-collapse: separate; /* IMPORTANT */
+    border-spacing: 2px; /* espace entre les cellules */
+}
+
+.opponent-link:hover {
+    text-decoration: underline;
+}
+
+.opponent-link i {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.opponent-link:hover i {
+    transform: translateX(2px);
+    opacity: 1;
+}
+
+.team-badge {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.sets-table td {
+    padding: 5px;
+    transition: all 0.2s ease;
+}
+/* Empêche le tableau de prendre toute la largeur si peu de sets */
+/*.sets-table {
+    width: auto !important;
+    margin-bottom: 1rem;
+}*/

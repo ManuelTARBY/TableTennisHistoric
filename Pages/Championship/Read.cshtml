@@ -1,0 +1,158 @@
+﻿@page
+@model TableTennisHistoric.Pages.Championship.ReadModel
+@{
+    ViewData["Title"] = "Affichage des matchs de championnat";
+}
+
+<h1 class="mb-4 text-center">Affichage championnats</h1>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="post" asp-page-handler="SelectChampionship">
+            <div class="input-group">
+                <select asp-for="SelectedChampionshipId"
+                        class="form-select"
+                        asp-items="Model.ChampionshipSelectList"
+                        onchange="this.form.submit()">
+                    <option value="">-- Choisir un championnat --</option>
+                </select>
+            </div>
+
+            <span asp-validation-for="SelectedChampionshipId" class="text-danger"></span>
+        </form>
+    </div>
+
+    <div class="col-md-4 text-end">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success mb-0">@TempData["Success"]</div>
+        }
+    </div>
+</div>
+
+
+@if (Model.Championship != null)
+{
+    <h2 class="text-center">
+        @Model.Championship.Season?.Name
+        |
+        @Models.Championship.RankLabels.GetValueOrDefault(Model.Championship.Rank, Model.Championship.Rank.ToString())
+        @Model.Championship.Level
+        | Poule @Model.Championship.ChampionshipGroup
+    </h2>
+
+    <h3 class="mt-4">Classement</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Pos.</th>
+                <th>Équipe</th>
+                <th>Points</th>
+                <th>Joués</th>
+                <th>Victoires</th>
+                <th>Nuls</th>
+                <th>Défaites</th>
+                <th>Gagnés</th>
+                <th>Perdus</th>
+                <th>Différence</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.TeamResults.Count; i++)
+            {
+                var team = Model.TeamResults[i];
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@team.Name</td>
+                    <td>@team.Points</td>
+                    <td>@team.NbOfGamePlayed</td>
+                    <td>@team.Victory</td>
+                    <td>@team.Draw</td>
+                    <td>@team.Defeat</td>
+                    <td>@team.GameWon</td>
+                    <td>@team.GameLost</td>
+                    <td>
+                        @if ((team.GameAverage ?? 0) > 0)
+                        {
+                            @("+" + (team.GameAverage ?? 0))
+                        }
+                        else
+                        {
+                            @(team.GameAverage ?? 0)
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3 class="mt-4">Journées de championnat</h3>
+
+    <form method="post" asp-page-handler="SaveScores">
+        <input type="hidden" asp-for="SelectedChampionshipId" />
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Journée</th>
+                    <th>Domicile</th>
+                    <th>Score</th>
+                    <th>Extérieur</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Matches.Count; i++)
+                {
+                    string classHome = "";
+                    string classAway = "";
+                    if (Model.Matches[@i].Home_score.HasValue && Model.Matches[@i].Away_score.HasValue)
+                    {
+                        if (Model.Matches[@i].Home_score != Model.Matches[@i].Away_score)
+                        {
+                            if (Model.Matches[@i].Home_score > Model.Matches[@i].Away_score)
+                            {
+                                classHome = "badge bg-success text-white";
+                                classAway = "badge bg-danger text-white";
+                            }
+                            else if (Model.Matches[@i].Home_score < Model.Matches[@i].Away_score)
+                            {
+                                classHome = "badge bg-danger text-white";
+                                classAway = "badge bg-success text-white";
+                            }
+                        }
+                        else
+                        {
+                            classHome = "badge bg-primary text-white";
+                            classAway = "badge bg-primary text-white";
+                        }
+                    }
+                    var match = Model.Matches[i];
+                    <tr>
+                        <td>@match.Matchday</td>
+                        <td class="align-middle">
+                            <span class="@classHome team-badge">@match.HomeTeamName</span>
+                        </td>
+                        <td>
+                            <input asp-for="Matches[@i].Home_score" type="number" min="0" max="14" class="form-control d-inline-block" style="width:70px" />
+                            <span>-</span>
+                            <input asp-for="Matches[@i].Away_score" type="number" min="0" max="14" class="form-control d-inline-block" style="width:70px" />
+                            <input type="hidden" asp-for="Matches[@i].Id" />
+                        </td>
+                        <td class="align-middle">
+                            <span class="@classAway team-badge">@match.AwayTeamName</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success">Enregistrer les scores</button>
+    </form>
+}
+else
+{
+    <p class="text-muted">Sélectionne un championnat pour afficher ses matches et son classement.</p>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

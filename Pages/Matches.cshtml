@@ -1,0 +1,238 @@
+﻿@page
+@using TableTennisHistoric.Models
+@model TableTennisHistoric.Pages.MatchesModel
+
+<div class="row gx-5">
+    <div class="col-md-7">
+        <h1>Liste des @Model.MatchesDTO.Count matchs joués</h1>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Compétition</th>
+                    <th>Adversaire</th>
+                    <th>Points adversaire</th>
+                    <th>Résultat</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    DateOnly matchDate = Model.MatchesDTO[0].Date_of_match;
+                }
+                @foreach (var match in Model.MatchesDTO)
+                {
+                    @if (match.Date_of_match != matchDate)
+                    {
+                        <tr class="gap-row">
+                            <td colspan="10" style="height:6px;"></td>
+                        </tr>
+                        matchDate = match.Date_of_match;
+                    }
+                    <tr>
+                        <td>@match.Date_of_match.ToShortDateString()</td>
+                        <td>@match.Competition</td>
+                        <td>
+                            <a asp-page="/OpponentsHistoric" target="_blank"
+                               asp-route-SelectedOpponentId="@match.OpponnentId"
+                               class="text-decoration-none text-primary fw-semibold opponent-link"
+                               title="Voir l'historique des matchs contre @match.Opponent_full_name">
+                                @match.Opponent_full_name
+                                <i class="bi bi-box-arrow-up-right ms-1 small opacity-75"></i>
+                            </a>
+                        </td>
+                        <td>@match.Opponent_points_at_match.ToString("0.##")</td>
+                        <td>
+
+                            @switch (match.Result)
+                            {
+                                case DTO.MatchDTO.MatchResult.V:
+                                    <span class="badge bg-success fs-6">Victoire</span>
+                                    break;
+                                case DTO.MatchDTO.MatchResult.D:
+                                    <span class="badge bg-danger fs-6">Défaite</span>
+                                    break;
+                                case DTO.MatchDTO.MatchResult.F:
+                                    <span class="badge bg-secondary text-white fs-6">Forfait</span>
+                                    break;
+                                default:
+                                    <span>@match.Result</span>
+                                    break;
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Ajouter un match -->
+    <div class="col-md-5">
+        <h2>Ajouter un match</h2>
+
+        <form method="post">
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.Date_match" class="form-label fw-bold">Date du match</label>
+                <input asp-for="Input.Date_match" class="form-control" type="date" />
+                <span asp-validation-for="Input.Date_match" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.CompetitionCoefficientId" class="form-label fw-bold">Compétition</label>
+                <select asp-for="Input.CompetitionCoefficientId"
+                        asp-items="Model.CompetitionCoefficients"
+                        class="form-select">
+                    <option value="">-- Sélectionner une compétition --</option>
+                </select>
+                <span asp-validation-for="Input.CompetitionCoefficientId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.StageId" class="form-label fw-bold">Stade</label>
+                <select asp-for="Input.StageId"
+                        asp-items="Model.Stages"
+                        class="form-select">
+                    <option value="">-- Sélectionner un stade --</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.OpponentId" class="form-label fw-bold">Adversaire</label>
+                <select asp-for="Input.OpponentId"
+                        asp-items="Model.Opponents"
+                        class="form-select">
+                    <option value="">-- Sélectionner un adversaire --</option>
+                </select>
+                <span asp-validation-for="Input.OpponentId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.My_points_at_match" class="form-label fw-bold">Mes points mensuels au moment du match</label>
+                <input asp-for="Input.My_points_at_match" type="text" data-val="false" class="form-control" />
+                <span asp-validation-for="Input.My_points_at_match" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.Opponent_points_at_match" class="form-label fw-bold">Points mensuels de l'adversaire au moment du match</label>
+                <input asp-for="Input.Opponent_points_at_match" type="text" data-val="false" class="form-control" />
+                <span asp-validation-for="Input.Opponent_points_at_match" class="text-danger"></span>
+            </div>
+
+            <!-- Résultat du match -->
+            <div class="form-group mb-3">
+                <label asp-for="Input.Result" class="form-label fw-bold mb-2">Résultat</label>
+
+                <div class="d-flex gap-2">
+
+                    @foreach (var result in Enum.GetValues(typeof(TableTennisMatch.MatchResult)))
+                    {
+                        string label;
+                        string icon;
+                        string btnClass;
+
+                        switch (result)
+                        {
+                            case TableTennisMatch.MatchResult.V:
+                                label = "Victoire";
+                                icon = "bi-trophy-fill";
+                                btnClass = "btn-outline-success";
+                                break;
+
+                            case TableTennisMatch.MatchResult.D:
+                                label = "Défaite";
+                                icon = "bi-x-circle-fill";
+                                btnClass = "btn-outline-danger";
+                                break;
+
+                            case TableTennisMatch.MatchResult.F:
+                                label = "Forfait";
+                                icon = "bi-flag-fill";
+                                btnClass = "btn-outline-secondary";
+                                break;
+
+                            default:
+                                label = result.ToString();
+                                icon = "bi-question-circle-fill";
+                                btnClass = "btn-outline-secondary";
+                                break;
+                        }
+
+                        <div>
+                            <input type="radio"
+                                   class="btn-check"
+                                   asp-for="Input.Result"
+                                   value="@result"
+                                   id="result_@result"
+                                   autocomplete="off" />
+
+                            <label class="btn @btnClass d-flex align-items-center gap-2 px-3 py-2"
+                                   for="result_@result">
+                                <i class="bi @icon fs-5"></i>
+                                <span class="fw-semibold">@label</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <span asp-validation-for="Input.Result" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-label fw-bold">Détail</label>
+                <table class="table table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th>Set 1</th>
+                            <th>Set 2</th>
+                            <th>Set 3</th>
+                            <th>Set 4</th>
+                            <th>Set 5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <td>
+                                    <input type="number" name="Input.SetMy[@i]" class="form-control text-center" />
+                                </td>
+                            }
+                        </tr>
+                        <tr>
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <td>
+                                    <input type="number" name="Input.SetOpp[@i]" class="form-control text-center" />
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.Comment" class="form-label fw-bold">Commentaire</label>
+                <textarea asp-for="Input.Comment" class="form-control"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Ajouter</button>
+            <a asp-page="../Index" class="btn btn-secondary">Retour</a>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const inputs = ['Input_My_points_at_match', 'Input_Opponent_points_at_match'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = el.value.replace(',', '.');
+        });
+    });
+</script>

@@ -1,0 +1,221 @@
+﻿@page
+@using TableTennisHistoric.DTO
+@model TableTennisHistoric.Pages.OpponentsHistoric
+@{
+    ViewData["Title"] = "Adversaires";
+}
+
+<h1 class="mb-4 text-center">Historique rencontre adversaire</h1>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="post" asp-page-handler="SelectOpponent">
+            <label class="form-label fw-bold">Adversaire</label>
+            <select asp-for="SelectedOpponentId"
+                    asp-items="Model.OpponentsSelectList"
+                    class="form-select"
+                    onchange="this.form.submit()">
+                <option value="">-- Sélectionner un adversaire --</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+@if (Model.Matches != null && Model.Matches.Any() && Model.SelectedOpponentId.HasValue)
+{
+    var NbOfMatches = Model.Matches.Count;
+    var matchOrtho = NbOfMatches > 1 ? "Matchs" : "Match";
+    var victories = Model.Matches.Count(m => m.Result == MatchDTO.MatchResult.V);
+    var defeats = Model.Matches.Count(m => m.Result == MatchDTO.MatchResult.D);
+    string SeasonOfLastMatch = null;
+
+    <h3 class="mb-3 text-center">
+        @matchOrtho contre @Model.Matches.First().Opponent_first_name
+        @Model.Matches.First().Opponent_last_name
+    </h3>
+
+    <div class="row justify-content-center">
+        <div class="chart-container" style="max-width: 350px; width: 100%;">
+            <canvas id="victoryGauge"></canvas>
+        </div>
+    </div>
+
+    <table class="table table-striped align-middle mt-4">
+        <tbody>
+            @foreach (var match in Model.Matches)
+            {
+                if (SeasonOfLastMatch == null || SeasonOfLastMatch != match.Season_name)
+                {
+                <thead class="table-secondary">
+                    <tr>
+                        <th colspan="9" class="text-center fs-5 fw-bold py-3">
+                            <i class="bi bi-calendar3 me-2"></i>
+                                @match.Season_name
+                        </th>
+                    </tr>
+                    <tr class="table-light">
+                        <th>Date</th>
+                        <th>Compétition</th>
+                        <th>Club</th>
+                        <th>Mes points</th>
+                        <th>Points adversaire</th>
+                        <th>Diff.</th>
+                        <th>Résultat</th>
+                        <th>Sets</th>
+                        <th>Commentaire</th>
+                    </tr>
+                </thead>
+                }
+            <tr title="@match.Comment">
+                <td>@match.Date_of_match.ToShortDateString()</td>
+                <td>@match.Competition</td>
+                <td>@match.Opponent_club</td>
+                <td>@match.My_points_at_match.ToString("0.##")</td>
+                <td>@match.Opponent_points_at_match.ToString("0.##")</td>
+                <td>
+                        @(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.##")
+                </td>
+                <td>
+                        @switch (match.Result)
+                        {
+                            case MatchDTO.MatchResult.V:
+                            <span class="badge bg-success fs-6">Victoire</span>
+                                break;
+                            case MatchDTO.MatchResult.D:
+                            <span class="badge bg-danger fs-6">Défaite</span>
+                                break;
+                            case MatchDTO.MatchResult.F:
+                            <span class="badge bg-secondary text-white fs-6">Forfait</span>
+                                break;
+                        }
+                </td>
+                <td>
+                        @if (match.MatchSets != null)
+                        {
+                        <table class="sets-table">
+                            <tr>
+                                    @{
+                                        foreach (var set in match.MatchSets)
+                                        {
+                                        <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                                @set.Player1Score
+                                        </td>
+                                        }
+                                    }
+                            </tr>
+                            <tr>
+                                    @{
+                                        foreach (var set in match.MatchSets)
+                                        {
+                                        <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                                @set.Player2Score
+                                        </td>
+                                        }
+                                    }
+                            </tr>
+                        </table>
+                        }
+                </td>
+                <td class="align-middle">
+                    @if (!string.IsNullOrEmpty(match.Comment))
+                    {
+                        <i class="bi bi-chat-square-text-fill text-warning"
+                           data-bs-toggle="tooltip">
+                        </i>
+                    }
+                </td>
+            </tr>
+                SeasonOfLastMatch = match.Season_name;
+            }
+        </tbody>
+    </table>
+}
+else if (Model.SelectedOpponentId.HasValue)
+{
+    <div class="alert alert-info">
+        Aucun match trouvé pour cet adversaire.
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- Graphique en camembert du ratio victoire/défaite -->
+<script>
+    (() => {
+        const victoryPercentage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VictoryPercentage));
+        const ctxVictory = document.getElementById('victoryGauge').getContext('2d');
+        const nbOfMatch = @(Model.Matches.Count);
+
+        new Chart(ctxVictory, {
+            type: 'doughnut',
+            data: {
+                labels: ["Victoires", "Défaites"],
+                datasets: [{
+                    data: [victoryPercentage, 100 - victoryPercentage],
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.8)',
+                        'rgba(255, 0, 0, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '60%',
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    title: {
+                        display: false,
+                        text: 'Pourcentage victoires/défaites',
+                        color: 'black',
+                        font: {size: 16 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + (nbOfMatch * context.raw.toFixed(2) / 100).toFixed(0) + ' (' + context.raw.toFixed(2) + '%)';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'center',
+                        align: 'center',
+                            formatter: function (value, context) {
+                                if (value == null || isNaN(value)) {
+                                    return "";
+                                }
+                                return value.toFixed(2) + '%';
+    }
+                    },
+                    centerText: {
+                        text: [@(Model.Matches.Count) + ' matchs'],
+                        fontSize: 36,
+                        fontFamily: 'Arial',
+                        color: '#000'
+                    }
+                }
+            },
+            plugins: [ChartDataLabels,
+                     {
+                        id: 'centerText',
+                        afterDraw(chart, args, options) {
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            const arc = meta.data[0];
+                            const centerX = arc.x;
+                            const centerY = arc.y;
+
+                            ctx.save();
+                            ctx.font = options.fontSize + "px " + options.fontFamily;
+                            ctx.fillStyle = options.color;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(options.text, centerX, centerY);
+                            ctx.restore();
+                        }
+                }]
+        });
+    })();
+</script>

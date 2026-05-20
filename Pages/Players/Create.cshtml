@@ -1,0 +1,99 @@
+﻿@page
+@model TableTennisHistoric.Pages.Players.CreateModel
+@{
+    ViewData["Title"] = "Gestion des joueurs et affiliations";
+}
+
+<h1 class="mb-4 text-center">Gestion des joueurs et affiliations</h1>
+
+<div class="container">
+    <div class="row">
+        <!-- ==================== FORMULAIRE JOUEUR ==================== -->
+        <div class="col-md-6">
+            <div class="border rounded p-4 shadow-sm bg-light">
+                <h4 class="mb-3 text-center text-primary">Créer un joueur</h4>
+
+                <form method="post" asp-page-handler="CreatePlayer">
+                    <div class="mb-3">
+                        <label asp-for="Player.First_name" class="form-label fw-bold">Prénom</label>
+                        <input asp-for="Player.First_name" class="form-control" maxlength="50" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Player.Last_name" class="form-label fw-bold">Nom</label>
+                        <input asp-for="Player.Last_name" class="form-control" style="text-transform: uppercase;" maxlength="50" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Player.License_number" class="form-label fw-bold">Numéro de licence</label>
+                        <input asp-for="Player.License_number" type="number"  class="form-control" maxlength="10" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Créer le joueur</button>
+                </form>
+
+                @if (Model.SuccessMessagePlayer != null)
+                {
+                    <div class="alert alert-success mt-3 text-center">@Model.SuccessMessagePlayer</div>
+                }
+            </div>
+        </div>
+
+        <!-- ==================== FORMULAIRE PLAYERSEASON ==================== -->
+        <div class="col-md-6">
+            <div class="border rounded p-4 shadow-sm bg-light">
+                <h4 class="mb-3 text-center text-success">Créer une affiliation</h4>
+
+                <form method="post" asp-page-handler="CreatePlayerSeason">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Joueur</label>
+                        <select asp-for="SelectedPlayerId" asp-items="Model.Players" class="form-select" required>
+                            <option value="">-- Sélectionnez un joueur --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="SelectedCategory" class="form-label fw-bold">Catégorie</label>
+                        <select asp-for="SelectedCategory"
+                                class="form-select"
+                                asp-items="Html.GetEnumSelectList<Models.PlayerSeason.PlayerCategory>()">
+                            <option value="">-- Sélectionnez une catégorie --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Club</label>
+                        <select asp-for="SelectedClubId" asp-items="Model.Clubs" class="form-select" required>
+                            <option value="">-- Sélectionnez un club --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Saison</label>
+                        <select asp-for="SelectedSeasonId" asp-items="Model.Seasons" class="form-select" required>
+                            <option value="">-- Sélectionnez une saison --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Points début de saison</label>
+                        <input asp-for="StartPoints" type="number" step="1" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Points milieu de saison</label>
+                        <input asp-for="MiddlePoints" type="number" step="1" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-3">Créer l'affiliation</button>
+                </form>
+
+                @if (Model.SuccessMessagePlayerClub != null)
+                {
+                    <div id="successAlert" class="alert alert-success mt-3 text-center">@Model.SuccessMessagePlayerClub</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

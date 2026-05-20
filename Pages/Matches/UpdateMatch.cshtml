@@ -1,0 +1,236 @@
+﻿@page "{id:int}"
+@using TableTennisHistoric.Models
+@model TableTennisHistoric.Pages.Matches.UpdateMatchModel
+@{
+    ViewData["Title"] = "Modifier un match";
+}
+
+<h2>Modifier un match</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="Input.Id" />
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="mb-3">
+        <label>Date</label>
+        <input asp-for="Input.Date_match" type="date" class="form-control" />
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <label>Compétition</label>
+            <select asp-for="Input.CompetitionCoefficientId"
+                    asp-items="Model.CompetitionCoefficients"
+                    class="form-select"></select>
+        </div>
+
+        <div class="col">
+            <label>Stade</label>
+            <select asp-for="Input.StageId"
+                    asp-items="Model.Stages"
+                    class="form-select">
+                <option value="">-- Sélectionner un stade --</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Adversaire</label>
+        <select asp-for="Input.OpponentId"
+                asp-items="Model.Opponents"
+                class="form-select"></select>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <label>Mes points</label>
+            <input asp-for="Input.My_points_at_match" class="form-control" />
+        </div>
+        <div class="col">
+            <label>Points adversaire</label>
+            <input asp-for="Input.Opponent_points_at_match" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mb-3 mt-3">
+        <label>Résultat</label>
+        <select asp-for="Input.Result" class="form-select">
+            <option value="V">Victoire</option>
+            <option value="D">Défaite</option>
+            <option value="F">Forfait</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Commentaire</label>
+        <textarea asp-for="Input.Comment" class="form-control"></textarea>
+    </div>
+
+    <label class="mb-3">Sets</label>
+    <div class="mb-3">
+    <!-- Ajouter un set -->
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSet()">
+            <i class="bi bi-plus-circle"></i> Ajouter un set
+        </button>
+    <!-- Supprimer le dernier set -->
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLastSet()">
+            <i class="bi bi-trash"></i> Supprimer le dernier set
+        </button>
+    </div>
+    <div class="w-50">
+    <table class="table table-sm text-center align-middle sets-table">
+        <tbody>
+
+                <tr id="rowPlayer1">
+                    <td class="fw-bold text-start" style="min-width: 100px;">Moi</td>
+                    @for (int i = 0; i < Model.Input.Sets.Count; i++)
+                    {
+                        <td>
+                            <input type="hidden" name="Input.Sets[@i].SetNumber" value="@Model.Input.Sets[i].SetNumber" />
+                            <input type="number" name="Input.Sets[@i].Player1Score" value="@Model.Input.Sets[i].Player1Score"
+                                   class="form-control text-center border-0 fw-bold"
+                                   style="width:60px; margin:auto;" min="0" />
+                        </td>
+                    }
+                </tr>
+
+                <tr id="rowPlayer2">
+                    <td class="fw-bold text-start">Adversaire</td>
+                    @for (int i = 0; i < Model.Input.Sets.Count; i++)
+                    {
+                        <td>
+                            <input type="number" name="Input.Sets[@i].Player2Score" value="@Model.Input.Sets[i].Player2Score"
+                                   class="form-control text-center border-0 fw-bold"
+                                   style="width:60px; margin:auto;" min="0" />
+                        </td>
+                    }
+                </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="position-relative mt-5">
+
+        <!-- Retour -->
+        <button type="button" class="position-absolute start-0 shadow-sm btn btn-lg btn-secondary" onclick="history.back()">
+            <i class="bi bi-arrow-left"></i> Retour
+        </button>
+
+        <!-- Enregistrer -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5 shadow">
+                <i class="bi bi-save"></i> Enregistrer les modifications
+            </button>
+        </div>
+
+    </div> 
+
+</form>
+
+<script>
+    function addSet() {
+        const row1 = document.getElementById('rowPlayer1');
+        const row2 = document.getElementById('rowPlayer2');
+
+        // Calcul du nouvel index (on compte les colonnes moins la cellule "Moi/Adversaire")
+        const newIndex = row1.cells.length - 1;
+
+        // Nouvelle cellule pour Player 1
+        const newCell1 = row1.insertCell(-1);
+        newCell1.innerHTML = `
+            <input type="hidden" name="Input.Sets[${newIndex}].SetNumber" value="${newIndex + 1}" />
+            <input type="number" name="Input.Sets[${newIndex}].Player1Score"
+                   class="form-control text-center border-0 bg-transparent fw-bold"
+                   style="width:60px; margin:auto;" value="0" min="0" />`;
+
+        // Nouvelle cellule pour Player 2
+        const newCell2 = row2.insertCell(-1);
+        newCell2.innerHTML = `
+            <input type="number" name="Input.Sets[${newIndex}].Player2Score"
+                   class="form-control text-center border-0 bg-transparent fw-bold"
+                   style="width:60px; margin:auto;" value="0" min="0" />`;
+
+        attachSetListeners();
+        highlightSetWinners();
+
+        if ((newIndex + 1) < 3){
+            addSet();
+        }
+    }
+
+    function removeLastSet() {
+        const row1 = document.getElementById('rowPlayer1');
+        const row2 = document.getElementById('rowPlayer2');
+
+        // On ne supprime que s'il reste plus d'une colonne (le label)
+        if (row1.cells.length > 2) {
+            row1.deleteCell(-1);
+            row2.deleteCell(-1);
+        }
+    }
+
+        function highlightSetWinners() {
+        const row1 = document.getElementById('rowPlayer1');
+        const row2 = document.getElementById('rowPlayer2');
+
+        const cells1 = Array.from(row1.cells).slice(1); // on ignore la cellule label
+        const cells2 = Array.from(row2.cells).slice(1);
+
+        cells1.forEach((cell, i) => {
+            const input1 = cell.querySelector('input[type="number"]');
+            const input2 = cells2[i].querySelector('input[type="number"]');
+
+            if (!input1 || !input2) return;
+
+            const score1 = parseInt(input1.value) || 0;
+            const score2 = parseInt(input2.value) || 0;
+
+            // Reset
+            input1.style.backgroundColor = '';
+            input2.style.backgroundColor = '';
+
+            if (score1 > score2) {
+                input1.style.backgroundColor = '#d4edda'; // vert clair
+            } else if (score2 > score1) {
+                input2.style.backgroundColor = '#d4edda';
+            }
+            // égalité → pas de couleur
+        });
+    }
+
+    function attachSetListeners() {
+        const row1 = document.getElementById('rowPlayer1');
+        const row2 = document.getElementById('rowPlayer2');
+
+        [...row1.querySelectorAll('input[type="number"]'),
+     ...row2.querySelectorAll('input[type="number"]')]
+        .filter(input => !input.dataset.listenerAttached)
+        .forEach(input => {
+            input.addEventListener('input', highlightSetWinners);
+            input.dataset.listenerAttached = 'true'; // on marque l'input
+        });
+
+        // row1.querySelectorAll('input[type="number"]').forEach(input => {
+        //     input.addEventListener('input', highlightSetWinners);
+        // });
+        // row2.querySelectorAll('input[type="number"]').forEach(input => {
+        //     input.addEventListener('input', highlightSetWinners);
+        // });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        attachSetListeners();
+        highlightSetWinners();
+    });
+</script>

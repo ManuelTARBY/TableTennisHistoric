@@ -1,0 +1,29 @@
+﻿@page
+@model TableTennisHistoric.Pages.PlayersModel
+@{
+    ViewData["Title"] = "Liste des clubs";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Numéro de licence</th>
+            <th>Club</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var player in Model.Players)
+        {
+            <tr>
+                <td>@player.Player.First_name</td>
+                <td>@player.Player.Last_name</td>
+                <td>@player.Player.License_number</td>
+                <td>@player.Club.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>

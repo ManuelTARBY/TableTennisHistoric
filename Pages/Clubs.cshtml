@@ -1,0 +1,158 @@
+﻿@page
+@model TableTennisHistoric.Pages.ClubsModel
+@{
+    ViewData["Title"] = "Gestion des clubs";
+}
+
+<h1 class="mb-4">Gestion des clubs</h1>
+
+<div class="row">
+    <!-- ============================= -->
+    <!--   COLONNE GAUCHE : LISTE DES CLUBS -->
+    <!-- ============================= -->
+    <div class="col-md-7">
+        <h2>Liste des clubs</h2>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Numéro de licence</th>
+                    <th>Nom</th>
+                    <th>Nom abrégé</th>
+                    <th>Ville</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var club in Model.Clubs)
+                {
+                    <tr>
+                        <td>@club.License_number</td>
+                        <td>@club.Name</td>
+                        <td>@club.Name_abrev</td>
+                        <td>@club.City</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================= -->
+    <!--   COLONNE DROITE : FORMULAIRE AJOUT CLUB -->
+    <!-- ============================= -->
+    <div class="col-md-5">
+        <h2>Ajouter un club</h2>
+        <!-- FORMULAIRE AJOUT CLUB -->
+        <form method="post" asp-page-handler="CreateClub">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="CreateClubForm.Name" class="form-label">Nom</label>
+                <input asp-for="CreateClubForm.Name" class="form-control" placeholder="Nom du club" maxlength="100" />
+                <span asp-validation-for="CreateClubForm.Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CreateClubForm.Name_abrev" class="form-label">Nom abrégé</label>
+                <input asp-for="CreateClubForm.Name_abrev" class="form-control" placeholder="Nom abrégé du club" maxlength="100" />
+                <span asp-validation-for="CreateClubForm.Name_abrev" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CreateClubForm.License_number" class="form-label">Numéro de licence</label>
+                <input asp-for="CreateClubForm.License_number" class="form-control" placeholder="12345" maxlength="10" />
+                <span asp-validation-for="CreateClubForm.License_number" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CreateClubForm.City" class="form-label">Ville</label>
+                <input asp-for="CreateClubForm.City" class="form-control" placeholder="Ville" maxlength="100" />
+                <span asp-validation-for="CreateClubForm.City" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CreateClubForm.Department" class="form-label">Département</label>
+                <input asp-for="CreateClubForm.Department" class="form-control" type="number" step="1" required />
+                <span asp-validation-for="CreateClubForm.Department" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Créer le club</button>
+        </form>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+<!-- ========================================================== -->
+<!--   SECTION BAS : FORMULAIRE CRÉATION ET LISTE DES ÉQUIPES -->
+<!-- ========================================================== -->
+<div class="row">
+    <div class="col-md-7">
+        <h2>Équipes du club</h2>
+
+        <form method="post" asp-page-handler="SelectClub" class="row g-3 mb-3">
+            <div class="col-md-8">
+                <label class="form-label fw-bold">Sélectionner un club</label>
+                <select asp-for="SelectedClubId" class="form-select" asp-items="Model.ClubSelectList">
+                    <option value="">-- Sélectionner un club --</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary w-100">Afficher les équipes</button>
+            </div>
+        </form>
+
+        @if (Model.SelectedClubTeams != null && Model.SelectedClubTeams.Any())
+        {
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom de l’équipe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var team in Model.SelectedClubTeams)
+                    {
+                        <tr>
+                            <td>@team.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else if (Model.SelectedClubId.HasValue)
+        {
+            <p class="text-muted fst-italic">Aucune équipe trouvée pour ce club.</p>
+        }
+    </div>
+
+    <div class="col-md-5">
+        <h2>Ajouter des équipes</h2>
+
+        @* Affichage des erreurs générales *@
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <form method="post" asp-page-handler="CreateTeams">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Club</label>
+                <select asp-for="CreateTeamsForm.TeamClubId" class="form-select" asp-items="Model.ClubSelectList">
+                    <option value="">-- Sélectionner un club --</option>
+                </select>
+                <span asp-validation-for="CreateTeamsForm.TeamClubId" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nom de base de l’équipe</label>
+                <input asp-for="CreateTeamsForm.TeamBaseName" class="form-control" placeholder="Ex : ASPTT Albi" />
+                <span asp-validation-for="CreateTeamsForm.TeamBaseName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre d’équipes</label>
+                <input asp-for="CreateTeamsForm.TeamsCount" type="number" min="1" class="form-control" placeholder="Ex : 3" />
+                <span asp-validation-for="CreateTeamsForm.TeamsCount" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Créer les équipes</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

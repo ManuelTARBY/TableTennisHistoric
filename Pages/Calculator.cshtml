@@ -1,0 +1,77 @@
+﻿@page
+@model TableTennisHistoric.Pages.PointsCalculatorModel
+@{
+    ViewData["Title"] = "Calculateur de points";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+
+        <div class="card bg-card shadow-sm border-0">
+            <div class="card-header bg-dark text-white text-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-calculator"></i> Calculateur de points
+                </h4>
+            </div>
+
+            <div class="card-body">
+
+                <form method="post">
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label fw-bold">Mes points</label>
+                            <input asp-for="Input.MyPoints" class="form-control" type="number" step="0.01" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold">Points adversaire</label>
+                            <input asp-for="Input.OpponentPoints" class="form-control" type="number" step="0.01" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Coefficient</label>
+                        <select asp-for="Input.Coefficient"
+                                asp-items="Model.Coefficients"
+                                class="form-select">
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Résultat</label>
+                        <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" asp-for="Input.Result" value="Victory" id="victory">
+                            <label class="btn btn-outline-success flex-fill" for="victory">
+                                <i class="bi bi-trophy-fill"></i> Victoire
+                            </label>
+
+                            <input type="radio" class="btn-check" asp-for="Input.Result" value="Defeat" id="defeat">
+                            <label class="btn btn-outline-danger flex-fill" for="defeat">
+                                <i class="bi bi-x-circle-fill"></i> Défaite
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-lightning-charge-fill"></i> Calculer
+                    </button>
+
+                </form>
+
+                @if (Model.ResultPoints.HasValue)
+                {
+                    <hr />
+                    <div class="text-center">
+                        <h5>Résultat</h5>
+
+                        <span class="badge @(Model.ResultPoints >= 0 ? "bg-success" : "bg-danger") fs-5 px-3 py-2">
+                            @(Model.ResultPoints > 0 ? "+" : "")@Model.ResultPoints points
+                        </span>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+    </div>
+</div>
