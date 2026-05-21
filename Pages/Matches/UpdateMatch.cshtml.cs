@@ -1,21 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Mono.TextTemplating;
 using System.ComponentModel.DataAnnotations;
-using TableTennisHistoric.Datas;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Matches
 {
     public class UpdateMatchModel : PageModel
     {
-        private readonly TableTennisHistoricDbContext _context;
+        private readonly IMatchService _matchService;
 
-        public UpdateMatchModel(TableTennisHistoricDbContext context)
+        public UpdateMatchModel(IMatchService matchService)
         {
-            _context = context;
+            _matchService = matchService;
         }
 
         public List<SelectListItem> CompetitionCoefficients { get; set; } = new();
@@ -60,16 +58,15 @@ namespace TableTennisHistoric.Pages.Matches
         // GET
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            //await LoadSelectListsAsync();
-
-            var match = await _context.TableTennisMatch
-                .Include(m => m.Sets)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var match = await _matchService.GetMatchWithSetsAsync(id);
 
             if (match == null)
                 return NotFound();
 
-            await LoadSelectListsAsync(match);
+            var lists = await _matchService.GetUpdateMatchSelectListsAsync(match);
+            CompetitionCoefficients = lists.CompetitionCoefficients;
+            Opponents = lists.Opponents;
+            Stages = lists.Stages;
 
             Input = new InputModel
             {
@@ -98,29 +95,33 @@ namespace TableTennisHistoric.Pages.Matches
         // POST
         public async Task<IActionResult> OnPostAsync()
         {
-            //await LoadSelectListsAsync();
-
             if (!ModelState.IsValid)
                 return Page();
 
-            var match = await _context.TableTennisMatch
-                .Include(m => m.Sets)
-                .FirstOrDefaultAsync(m => m.Id == Input.Id);
+            var match = await _matchService.GetMatchWithSetsAsync(Input.Id);
 
             if (match == null)
                 return NotFound();
 
-            await LoadSelectListsAsync(match);
+            var lists = await _matchService.GetUpdateMatchSelectListsAsync(match);
+            CompetitionCoefficients = lists.CompetitionCoefficients;
+            Opponents = lists.Opponents;
+            Stages = lists.Stages;
 
             // Filtrage des sets vides
-            Input.Sets = Input.Sets
+            var filteredSets = Input.Sets
                 .Where(s => (s.Player1Score > 0 || s.Player2Score > 0) && (s.Player1Score >= 11 || s.Player2Score >= 11))
-                .ToList();
+                .Select(s => new MatchSet
+                {
+                    SetNumber = s.SetNumber,
+                    Player1Score = s.Player1Score,
+                    Player2Score = s.Player2Score
+                }).ToList();
 
             // Validation des sets
-            if (Input.Sets.Count >= 3)
+            if (filteredSets.Count >= 3)
             {
-                var setErrors = ValidateSets(Input.Sets, Input.Result);
+                var setErrors = _matchService.ValidateSets(filteredSets, Input.Result);
                 foreach (var error in setErrors)
                     ModelState.AddModelError(string.Empty, error);
 
@@ -128,124 +129,12 @@ namespace TableTennisHistoric.Pages.Matches
                     return Page();
             }
 
-            // Update match
-            match.Date_match = DateOnly.FromDateTime(Input.Date_match);
-            match.CompetitionCoefficientId = Input.CompetitionCoefficientId;
-            match.StageId = Input.StageId;
-            match.OpponentId = Input.OpponentId;
-            match.My_points_at_match = Input.My_points_at_match;
-            match.Opponent_points_at_match = Input.Opponent_points_at_match;
-            match.Result = Input.Result;
-            match.Comment = Input.Comment;
-
-            // S'il y a moins de 3 sets valables, on n'enregistre que le match sans les sets
-            if (Input.Sets.Count < 3)
-            {
-                await _context.SaveChangesAsync();
-
-                return RedirectToPage("/Index");
-            }
-
-            // Update sets (simple version : delete + recreate)
-            _context.MatchSet.RemoveRange(match.Sets ?? Enumerable.Empty<MatchSet>());
-
-            match.Sets = Input.Sets.Select(s => new MatchSet
-            {
-                SetNumber = s.SetNumber,
-                Player1Score = s.Player1Score,
-                Player2Score = s.Player2Score
-            }).ToList();
-
-            await _context.SaveChangesAsync();
+            await _matchService.UpdateMatchAsync(match, Input.CompetitionCoefficientId, Input.StageId,
+                Input.OpponentId, Input.Date_match, Input.My_points_at_match,
+                Input.Opponent_points_at_match, Input.Result, Input.Comment,
+                filteredSets);
 
             return RedirectToPage("/Index");
-        }
-
-        private async Task LoadSelectListsAsync(TableTennisMatch match)
-        {
-            //var today = DateOnly.FromDateTime(DateTime.Today);
-
-            var currentSeason = await _context.Season
-                .FirstOrDefaultAsync(s => s.Start_date <= match.Date_match && s.End_date >= match.Date_match);
-            //var currentSeason = await _context.Season
-            //    .FirstOrDefaultAsync(s => s.Start_date <= today && s.End_date >= today);
-
-            if (currentSeason == null) return;
-
-            CompetitionCoefficients = await _context.CompetitionCoefficient
-                .Include(cc => cc.Competition)
-                .Where(cc => cc.SeasonId == currentSeason.Id)
-                .Select(cc => new SelectListItem
-                {
-                    Value = cc.Id.ToString(),
-                    Text = cc.Competition.Name
-                }).ToListAsync();
-
-            Opponents = await _context.Player
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.First_name + " " + p.Last_name
-                })
-                .ToListAsync();
-
-            Opponents = Opponents.OrderBy(o => o.Text).ToList();
-
-            Stages = await _context.Stage
-                .OrderBy(s => s.Name)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
-                .ToListAsync();
-        }
-
-        /**
-         * Validation des sets selon les règles du tennis de table : 11 points minimum pour le gagnant, écart de 2 points minimum, et cohérence avec le résultat du match.
-         * 
-         */
-        private List<string> ValidateSets(List<SetInputModel> sets, TableTennisMatch.MatchResult result)
-        {
-            var errors = new List<string>();
-
-            foreach (var set in sets)
-            {
-                int max = Math.Max(set.Player1Score, set.Player2Score);
-                int min = Math.Min(set.Player1Score, set.Player2Score);
-                int diff = max - min;
-
-                // Règle 1 : gagné à 11 points minimum
-                if (max < 11)
-                    errors.Add($"Set {set.SetNumber} : le gagnant doit avoir au moins 11 points ({set.Player1Score}-{set.Player2Score}).");
-
-                // Règle 2 : écart minimum de 2 points
-                if (diff < 2)
-                    errors.Add($"Set {set.SetNumber} : l'écart entre les joueurs doit être d'au moins 2 points ({set.Player1Score}-{set.Player2Score}).");
-            }
-
-            // Règle 3 : le vainqueur du match doit avoir gagné la majorité des sets
-            if (result != TableTennisMatch.MatchResult.F) // on ignore les forfaits
-            {
-                int setsPlayer1 = sets.Count(s => s.Player1Score > s.Player2Score);
-                int setsPlayer2 = sets.Count(s => s.Player2Score > s.Player1Score);
-
-                bool player1Won = result == TableTennisMatch.MatchResult.V;
-
-                if (player1Won && setsPlayer1 < setsPlayer2)
-                    errors.Add("Le résultat indique une victoire, mais l'adversaire a gagné plus de sets.");
-
-                if (player1Won && setsPlayer2 == setsPlayer1)
-                    errors.Add("Le résultat indique une victoire, mais vous avez gagné autant de sets que l'adversaire.");
-
-                if (!player1Won && setsPlayer1 == setsPlayer2)
-                    errors.Add("Le résultat indique une défaite, mais vous avez gagné autant de sets que l'adversaire.");
-
-                if (!player1Won && setsPlayer2 < setsPlayer1)
-                    errors.Add("Le résultat indique une défaite, mais vous avez gagné plus de sets.");
-            }
-
-            return errors;
         }
     }
 }

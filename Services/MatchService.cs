@@ -416,5 +416,112 @@ namespace TableTennisHistoric.Services
 
             return (competitionCoefficients, opponents);
         }
+
+        public async Task<TableTennisMatch?> GetMatchWithSetsAsync(int id)
+        {
+            return await _context.TableTennisMatch
+                .Include(m => m.Sets)
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public async Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents, List<SelectListItem> Stages)> GetUpdateMatchSelectListsAsync(TableTennisMatch match)
+        {
+            var season = await _context.Season
+                .FirstOrDefaultAsync(s => s.Start_date <= match.Date_match && s.End_date >= match.Date_match);
+
+            var competitionCoefficients = new List<SelectListItem>();
+
+            if (season != null)
+            {
+                competitionCoefficients = await _context.CompetitionCoefficient
+                    .Include(cc => cc.Competition)
+                    .Where(cc => cc.SeasonId == season.Id)
+                    .Select(cc => new SelectListItem
+                    {
+                        Value = cc.Id.ToString(),
+                        Text = cc.Competition.Name
+                    }).ToListAsync();
+            }
+
+            var opponents = (await _playerService.GetAllPlayersAsync() ?? new List<Player>())
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.First_name + " " + p.Last_name
+                })
+                .OrderBy(o => o.Text)
+                .ToList();
+
+            var stages = await _context.Stage
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                }).ToListAsync();
+
+            return (competitionCoefficients, opponents, stages);
+        }
+
+        public List<string> ValidateSets(List<MatchSet> sets, TableTennisMatch.MatchResult result)
+        {
+            var errors = new List<string>();
+
+            foreach (var set in sets)
+            {
+                int max = Math.Max(set.Player1Score, set.Player2Score);
+                int min = Math.Min(set.Player1Score, set.Player2Score);
+                int diff = max - min;
+
+                if (max < 11)
+                    errors.Add($"Set {set.SetNumber} : le gagnant doit avoir au moins 11 points ({set.Player1Score}-{set.Player2Score}).");
+
+                if (diff < 2)
+                    errors.Add($"Set {set.SetNumber} : l'écart entre les joueurs doit être d'au moins 2 points ({set.Player1Score}-{set.Player2Score}).");
+            }
+
+            if (result != TableTennisMatch.MatchResult.F)
+            {
+                int setsPlayer1 = sets.Count(s => s.Player1Score > s.Player2Score);
+                int setsPlayer2 = sets.Count(s => s.Player2Score > s.Player1Score);
+                bool player1Won = result == TableTennisMatch.MatchResult.V;
+
+                if (player1Won && setsPlayer1 < setsPlayer2)
+                    errors.Add("Le résultat indique une victoire, mais l'adversaire a gagné plus de sets.");
+
+                if (player1Won && setsPlayer1 == setsPlayer2)
+                    errors.Add("Le résultat indique une victoire, mais vous avez gagné autant de sets que l'adversaire.");
+
+                if (!player1Won && setsPlayer1 == setsPlayer2)
+                    errors.Add("Le résultat indique une défaite, mais vous avez gagné autant de sets que l'adversaire.");
+
+                if (!player1Won && setsPlayer2 < setsPlayer1)
+                    errors.Add("Le résultat indique une défaite, mais vous avez gagné plus de sets.");
+            }
+
+            return errors;
+        }
+
+        public async Task UpdateMatchAsync(TableTennisMatch match, int competitionCoefficientId, int? stageId,
+            int opponentId, DateTime dateMatch, decimal myPoints, decimal opponentPoints,
+            TableTennisMatch.MatchResult result, string? comment, List<MatchSet> sets)
+        {
+            match.Date_match = DateOnly.FromDateTime(dateMatch);
+            match.CompetitionCoefficientId = competitionCoefficientId;
+            match.StageId = stageId;
+            match.OpponentId = opponentId;
+            match.My_points_at_match = myPoints;
+            match.Opponent_points_at_match = opponentPoints;
+            match.Result = result;
+            match.Comment = comment;
+
+            if (sets.Count >= 3)
+            {
+                _context.MatchSet.RemoveRange(match.Sets ?? Enumerable.Empty<MatchSet>());
+                match.Sets = sets;
+            }
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

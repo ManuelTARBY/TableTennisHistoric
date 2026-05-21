@@ -18,5 +18,11 @@ namespace TableTennisHistoric.Services.Interfaces
         decimal Compute(TableTennisMatch match, CompetitionCoefficient? competitionCoefficient);
         Task<bool> CreateMatchAsync(int competitionCoefficientId, int opponentId, TableTennisMatch match);
         Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents)> GetCreateMatchSelectListsAsync();
+        Task<TableTennisMatch?> GetMatchWithSetsAsync(int id);
+        Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents, List<SelectListItem> Stages)> GetUpdateMatchSelectListsAsync(TableTennisMatch match);
+        List<string> ValidateSets(List<MatchSet> sets, TableTennisMatch.MatchResult result);
+        Task UpdateMatchAsync(TableTennisMatch match, int competitionCoefficientId, int? stageId,
+            int opponentId, DateTime dateMatch, decimal myPoints, decimal opponentPoints,
+            TableTennisMatch.MatchResult result, string? comment, List<MatchSet> sets);
     }
 }
