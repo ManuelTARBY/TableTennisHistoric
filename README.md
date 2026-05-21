@@ -1,6 +1,6 @@
 # 🏓 TableTennisHistoric
 
-Application web personnelle de suivi de résultats de tennis de table, développée en ASP.NET Core Razor Pages.
+Application web personnelle de suivi de résultats de tennis de table (compétition individuelles et championnats), développée en ASP.NET Core Razor Pages.
 
 ## 🛠️ Stack technique
 
