@@ -327,57 +327,30 @@ namespace TableTennisHistoric.Services
 
         public decimal ComputeDTO(MatchDTO match, decimal coefficient)
         {
-
-            if (coefficient == null) { return 0; }
-
-            var table = match.Result switch
-            {
-                MatchDTO.MatchResult.V => gainTableVictory,
-                MatchDTO.MatchResult.D => gainTableDefeat,
-                _ => Array.Empty<(decimal, decimal)>()
-            };
-
-            foreach (var (minDiff, gain) in table)
-            {
-                if (match.Point_difference >= minDiff)
-                    return gain * coefficient;
-            }
-
-            return 0;
+            return ComputeCore(match.Point_difference, match.Result == MatchDTO.MatchResult.V, coefficient);
         }
 
         public decimal Compute(TableTennisMatch match, CompetitionCoefficient? competitionCoefficient)
         {
-
-            if (competitionCoefficient == null) { return 0; }
-
-            decimal diff = match.Opponent_points_at_match - match.My_points_at_match;
-
-            var table = match.Result switch
-            {
-                TableTennisMatch.MatchResult.V => gainTableVictory,
-                TableTennisMatch.MatchResult.D => gainTableDefeat,
-                _ => Array.Empty<(decimal, decimal)>()
-            };
-
-            foreach (var (minDiff, gain) in table)
-            {
-                if (diff >= minDiff)
-                    return gain * competitionCoefficient.Coefficient;
-            }
-
-            return 0;
+            if (competitionCoefficient == null) return 0;
+            return ComputeCore(
+                match.Opponent_points_at_match - match.My_points_at_match,
+                match.Result == TableTennisMatch.MatchResult.V,
+                competitionCoefficient.Coefficient);
         }
 
         public decimal ComputeFromCalculator(decimal myPoints, decimal opponentPoints, decimal coefficient, bool isVictory)
         {
-            decimal diff = opponentPoints - myPoints;
+            return ComputeCore(opponentPoints - myPoints, isVictory, coefficient);
+        }
 
+        private decimal ComputeCore(decimal pointDifference, bool isVictory, decimal coefficient)
+        {
             var table = isVictory ? gainTableVictory : gainTableDefeat;
 
             foreach (var (minDiff, gain) in table)
             {
-                if (diff >= minDiff)
+                if (pointDifference >= minDiff)
                     return gain * coefficient;
             }
 
