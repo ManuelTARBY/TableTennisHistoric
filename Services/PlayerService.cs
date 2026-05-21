@@ -6,7 +6,7 @@ using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class PlayerService
+    public class PlayerService: IPlayerService
     {
         private readonly TableTennisHistoricDbContext _context;
         public ISeasonService _season;

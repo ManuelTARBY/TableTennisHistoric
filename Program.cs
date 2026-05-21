@@ -36,7 +36,7 @@ builder.Services.AddRazorPages()
 builder.Services.AddScoped<ICompetitionService, CompetitionService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchSetService, MatchSetService>();
-builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 
 // Session

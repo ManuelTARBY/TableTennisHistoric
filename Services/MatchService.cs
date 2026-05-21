@@ -9,7 +9,7 @@ namespace TableTennisHistoric.Services
     public class MatchService: IMatchService
     {
         private readonly TableTennisHistoricDbContext _context;
-        public PlayerService _playerService { get; set; }
+        public IPlayerService _playerService { get; set; }
         public ICompetitionService _competitionService { get; set; }
         public ISeasonService _seasonService { get; set; }
         public IMatchSetService _matchSetService { get; set; }
@@ -53,7 +53,7 @@ namespace TableTennisHistoric.Services
                 (-10000, -29)
             };
 
-        public MatchService(TableTennisHistoricDbContext context, PlayerService playerService, ICompetitionService competitionService, ISeasonService seasonService, IMatchSetService matchSetService)
+        public MatchService(TableTennisHistoricDbContext context, IPlayerService playerService, ICompetitionService competitionService, ISeasonService seasonService, IMatchSetService matchSetService)
         {
             _context = context;
             _playerService = playerService;
