@@ -22,7 +22,7 @@ Application web personnelle de suivi de résultats de tennis de table (compétit
 
 1. Cloner le dépôt :
    ```bash
-   git clone https://https://github.com/ManuelTARBY/TableTennisHistoric.git
+   git clone https://github.com/ManuelTARBY/TableTennisHistoric.git
    cd TableTennisHistoric
    ```
 
