@@ -6,7 +6,7 @@ using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class MatchService
+    public class MatchService: IMatchService
     {
         private readonly TableTennisHistoricDbContext _context;
         public PlayerService _playerService { get; set; }

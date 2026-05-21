@@ -34,7 +34,7 @@ builder.Services.AddRazorPages()
 
 // Services métiers
 builder.Services.AddScoped<CompetitionService>();
-builder.Services.AddScoped<MatchService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<MatchSetService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();

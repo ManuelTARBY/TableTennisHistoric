@@ -7,6 +7,7 @@ using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
 using TableTennisHistoric.Services;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
 {
@@ -15,11 +16,11 @@ namespace TableTennisHistoric.Pages
         private readonly TableTennisHistoricDbContext _context;
         public List<TableTennisMatch> Matches { get; set; } = new();
         public List<MatchDTO> MatchesDTO { get; set; } = new();
-        private MatchService _matchService { get; set; }
+        private IMatchService _matchService { get; set; }
         private PlayerService _playerService { get; set; }
         private CompetitionService _competitionService;
 
-        public MatchesModel(TableTennisHistoricDbContext context, MatchService matchService, PlayerService playerService, CompetitionService competitionService)
+        public MatchesModel(TableTennisHistoricDbContext context, IMatchService matchService, PlayerService playerService, CompetitionService competitionService)
         {
             _context = context;
             _matchService = matchService;

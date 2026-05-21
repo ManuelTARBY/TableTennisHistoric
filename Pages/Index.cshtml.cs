@@ -52,7 +52,7 @@ namespace TableTennisHistoric.Pages
             {5, 0},
         };
         public Dictionary<string, int> DetailedResults { get; set; } = new();
-        private MatchService _matchService { get; set; }
+        private IMatchService _matchService { get; set; }
         private PlayerService _playerService { get; set; }
         private ISeasonService _seasonService { get; set; }
         private TableTennisHistoricDbContext _context { get; set; }
@@ -88,7 +88,7 @@ namespace TableTennisHistoric.Pages
         public Dictionary<int, int> DefeatDistributionOrdered = new Dictionary<int, int>();
         public int VictoryDefeatMaxGauge { get; set; } = 0;
 
-        public IndexModel(TableTennisHistoricDbContext context, MatchService matchService, PlayerService playerService, ISeasonService seasonService)
+        public IndexModel(TableTennisHistoricDbContext context, IMatchService matchService, PlayerService playerService, ISeasonService seasonService)
         {
             _matchService = matchService;
             _playerService = playerService;
