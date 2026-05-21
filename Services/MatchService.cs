@@ -369,6 +369,21 @@ namespace TableTennisHistoric.Services
             return 0;
         }
 
+        public decimal ComputeFromCalculator(decimal myPoints, decimal opponentPoints, decimal coefficient, bool isVictory)
+        {
+            decimal diff = opponentPoints - myPoints;
+
+            var table = isVictory ? gainTableVictory : gainTableDefeat;
+
+            foreach (var (minDiff, gain) in table)
+            {
+                if (diff >= minDiff)
+                    return gain * coefficient;
+            }
+
+            return 0;
+        }
+
         public async Task<bool> CreateMatchAsync(int competitionCoefficientId, int opponentId, TableTennisMatch match)
         {
             var competitionCoefficient = await _competitionService.GetCompetitionCoefficientByIdAsync(competitionCoefficientId);

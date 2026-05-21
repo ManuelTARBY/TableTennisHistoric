@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
-using TableTennisHistoric.Services;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
