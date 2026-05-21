@@ -140,6 +140,39 @@ namespace TableTennisHistoric.Services
                 })
                 .ToListAsync();
         }
+        public async Task<RankingHistoryDTO> GetRankingHistoryAsync()
+        {
+            var playerSeasons = await _context.PlayerSeason
+                .Where(ps => ps.Player.Is_me)
+                .Include(ps => ps.Season)
+                .OrderBy(ps => ps.Season.Start_date)
+                .ToListAsync();
+
+            var rankingHistory = new Dictionary<string, decimal?>();
+
+            foreach (var playerSeason in playerSeasons)
+            {
+                rankingHistory.Add("Sept. 20" + playerSeason.Season.Start_date.Year.ToString()[^2..], playerSeason.Points_start ?? 0);
+
+                if (DateOnly.FromDateTime(DateTime.Now) > playerSeason.Season.Start_date.AddMonths(4))
+                {
+                    rankingHistory.Add("Jan. 20" + playerSeason.Season.End_date.Year.ToString()[^2..], playerSeason.Points_middle ?? 0);
+                }
+            }
+
+            int maxValue = (int)rankingHistory.Values
+                .OfType<decimal>()
+                .DefaultIfEmpty(500m)
+                .Max();
+
+            maxValue = (int)(Math.Ceiling(maxValue / 10m) * 10m) + 20;
+
+            return new RankingHistoryDTO
+            {
+                RankingHistory = rankingHistory,
+                RankingMaxValue = maxValue
+            };
+        }
 
     }
 }
