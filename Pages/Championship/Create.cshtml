@@ -149,7 +149,7 @@
                     <option value="">-- Sélectionnez --</option>
                     @foreach (var c in Model.Championships)
                     {
-                        <option value="@c.Id">@c.Season.Name Phase @c.Phase @Model.ConvertRank[c.Rank][0]@c.Level Poule @c.ChampionshipGroup</option>
+                        <option value="@c.Id">@c.Season.Name Phase @c.Phase @Model.RankLabels[c.Rank][0]@c.Level Poule @c.ChampionshipGroup</option>
                     }
                 </select>
             </div>
