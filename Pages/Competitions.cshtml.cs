@@ -6,16 +6,17 @@ using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
 using TableTennisHistoric.Services;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
 {
     public class CompetitionsModel : PageModel
     {
         private readonly TableTennisHistoricDbContext _context;
-        private readonly SeasonService _seasonService;
+        private readonly ISeasonService _seasonService;
         private readonly CompetitionService _competitionService;
 
-        public CompetitionsModel(TableTennisHistoricDbContext context, SeasonService seasonService, CompetitionService competitionService)
+        public CompetitionsModel(TableTennisHistoricDbContext context, ISeasonService seasonService, CompetitionService competitionService)
         {
             _context = context;
             _seasonService = seasonService;

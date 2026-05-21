@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class SeasonService
+    public class SeasonService: ISeasonService
     {
         private readonly TableTennisHistoricDbContext _context;
 

@@ -3,6 +3,7 @@ using TableTennisHistoric;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.Services;
 using System.Diagnostics;
+using TableTennisHistoric.Services.Interfaces;
 
 // ---------- Builder ----------
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +37,7 @@ builder.Services.AddScoped<CompetitionService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<MatchSetService>();
 builder.Services.AddScoped<PlayerService>();
-builder.Services.AddScoped<SeasonService>();
+builder.Services.AddScoped<ISeasonService, SeasonService>();
 
 // Session
 builder.Services.AddDistributedMemoryCache(); // stockage en mémoire pour la session

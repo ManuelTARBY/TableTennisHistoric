@@ -2,15 +2,16 @@
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
     public class ChampionshipService
     {
         private readonly TableTennisHistoricDbContext _context;
-        public SeasonService _seasonService { get; set; }
+        public ISeasonService _seasonService { get; set; }
 
-        public ChampionshipService(TableTennisHistoricDbContext context, SeasonService seasonService)
+        public ChampionshipService(TableTennisHistoricDbContext context, ISeasonService seasonService)
         {
             _context = context;
             _seasonService = seasonService;

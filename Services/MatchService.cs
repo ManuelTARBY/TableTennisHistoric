@@ -2,6 +2,7 @@
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
@@ -10,7 +11,7 @@ namespace TableTennisHistoric.Services
         private readonly TableTennisHistoricDbContext _context;
         public PlayerService _playerService { get; set; }
         public CompetitionService _competitionService { get; set; }
-        public SeasonService _seasonService { get; set; }
+        public ISeasonService _seasonService { get; set; }
         public MatchSetService _matchSetService { get; set; }
         private static readonly (decimal minDiff, decimal gain)[] gainTableVictory =
             {
@@ -52,7 +53,7 @@ namespace TableTennisHistoric.Services
                 (-10000, -29)
             };
 
-        public MatchService(TableTennisHistoricDbContext context, PlayerService playerService, CompetitionService competitionService, SeasonService seasonService, MatchSetService matchSetService)
+        public MatchService(TableTennisHistoricDbContext context, PlayerService playerService, CompetitionService competitionService, ISeasonService seasonService, MatchSetService matchSetService)
         {
             _context = context;
             _playerService = playerService;

@@ -6,6 +6,7 @@ using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
 using TableTennisHistoric.Services;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
 {
@@ -53,7 +54,7 @@ namespace TableTennisHistoric.Pages
         public Dictionary<string, int> DetailedResults { get; set; } = new();
         private MatchService _matchService { get; set; }
         private PlayerService _playerService { get; set; }
-        private SeasonService _seasonService { get; set; }
+        private ISeasonService _seasonService { get; set; }
         private TableTennisHistoricDbContext _context { get; set; }
 
         public string[] MonthLabels { get; set; }
@@ -87,7 +88,7 @@ namespace TableTennisHistoric.Pages
         public Dictionary<int, int> DefeatDistributionOrdered = new Dictionary<int, int>();
         public int VictoryDefeatMaxGauge { get; set; } = 0;
 
-        public IndexModel(TableTennisHistoricDbContext context, MatchService matchService, PlayerService playerService, SeasonService seasonService)
+        public IndexModel(TableTennisHistoricDbContext context, MatchService matchService, PlayerService playerService, ISeasonService seasonService)
         {
             _matchService = matchService;
             _playerService = playerService;
