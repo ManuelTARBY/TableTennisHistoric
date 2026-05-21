@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class MatchSetService
+    public class MatchSetService: IMatchSetService
     {
         private readonly TableTennisHistoricDbContext _context;
 
