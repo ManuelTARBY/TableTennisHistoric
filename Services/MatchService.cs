@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
@@ -366,6 +367,54 @@ namespace TableTennisHistoric.Services
             }
 
             return 0;
+        }
+
+        public async Task<bool> CreateMatchAsync(int competitionCoefficientId, int opponentId, TableTennisMatch match)
+        {
+            var competitionCoefficient = await _competitionService.GetCompetitionCoefficientByIdAsync(competitionCoefficientId);
+            var opponent = await _playerService.GetAllPlayersAsync();
+            var player = opponent?.FirstOrDefault(p => p.Id == opponentId);
+
+            if (competitionCoefficient == null || player == null)
+                return false;
+
+            match.CompetitionCoefficient = competitionCoefficient;
+            match.Opponent = player;
+
+            _context.TableTennisMatch.Add(match);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents)> GetCreateMatchSelectListsAsync()
+        {
+            var currentSeason = await _seasonService.GetCurrentSeasonAsync();
+
+            var competitionCoefficients = new List<SelectListItem>();
+
+            if (currentSeason != null)
+            {
+                competitionCoefficients = await _context.CompetitionCoefficient
+                    .Include(cc => cc.Competition)
+                    .Where(cc => cc.Competition != null && cc.SeasonId == currentSeason.Id)
+                    .Select(cc => new SelectListItem
+                    {
+                        Value = cc.Id.ToString(),
+                        Text = cc.Competition.Name
+                    })
+                    .ToListAsync();
+            }
+
+            var opponents = (await _playerService.GetAllPlayersAsync() ?? new List<Player>())
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.First_name + " " + p.Last_name
+                })
+                .OrderBy(o => o.Text)
+                .ToList();
+
+            return (competitionCoefficients, opponents);
         }
     }
 }
