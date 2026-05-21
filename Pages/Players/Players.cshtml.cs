@@ -1,57 +1,36 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using TableTennisHistoric.Datas;
+using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages;
+
 public class PlayersModel : PageModel
 {
-    private readonly TableTennisHistoricDbContext _context;
+    private readonly IPlayerService _playerService;
+    private readonly ISeasonService _seasonService;
 
-    public PlayersModel(TableTennisHistoricDbContext context)
+    public PlayersModel(IPlayerService playerService, ISeasonService seasonService)
     {
-        _context = context;
+        _playerService = playerService;
+        _seasonService = seasonService;
     }
 
-    public Season? ActiveSeason { get; set; } = new();
-    public List<PlayerWithClub> Players { get; set; } = new();
-
-    public async Task OnGetAsync()
-    {
-        await GetSeasonAsync();
-
-        Players = await _context.Player
-             .Include(p => p.PlayerSeasons)
-                 .ThenInclude(pc => pc.Club)
-             .Where(p => p.PlayerSeasons.Any(pc => pc.SeasonId == ActiveSeason.Id))
-             .Select(p => new PlayerWithClub
-             {
-                 Player = p,
-                 Club = p.PlayerSeasons
-                     .Where(pc => pc.SeasonId == ActiveSeason.Id)
-                     .Select(pc => pc.Club)
-                     .FirstOrDefault()
-             })
-             .ToListAsync();
-    }
-
-    public async Task GetSeasonAsync()
-    {
-        DateOnly BeginningOfSeason;
-        if (DateTime.Now.Month >= 9)
-        {
-            BeginningOfSeason = new DateOnly(DateTime.Now.Year, 09, 01);
-        }
-        else
-        {
-            BeginningOfSeason = new DateOnly(DateTime.Now.Year - 1, 09, 01);
-        }
-        ActiveSeason = await _context.Season.FirstOrDefaultAsync(s => s.Start_date == BeginningOfSeason);
-    }
+    public Season? ActiveSeason { get; set; }
+    public List<PlayerWithClubDTO> Players { get; set; } = new();
 
     public class PlayerWithClub
     {
         public Player Player { get; set; } = null!;
         public Club? Club { get; set; }
+    }
+
+    public async Task OnGetAsync()
+    {
+        ActiveSeason = await _seasonService.GetCurrentSeasonAsync();
+
+        if (ActiveSeason == null) return;
+
+        Players = await _playerService.GetPlayersWithClubBySeasonAsync(ActiveSeason);
     }
 }

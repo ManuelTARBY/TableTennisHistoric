@@ -18,5 +18,6 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<PlayerSeason?> GetPlayerSeasonByPlayerIdAndSeasonIdAsync(int playerId, int seasonId);
         Task<PlayerSeason> GetPlayerSeasonByPlayerAndSeasonAsync(Player player, Season season);
         Task<PlayerSeason?> GetPlayerSeasonAsync(Player player, Season season);
+        Task<List<PlayerWithClubDTO>> GetPlayersWithClubBySeasonAsync(Season season);
     }
 }

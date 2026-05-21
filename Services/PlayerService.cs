@@ -124,5 +124,22 @@ namespace TableTennisHistoric.Services
                 .FirstOrDefaultAsync(ps => ps.PlayerId == player.Id && ps.SeasonId == season.Id);
         }
 
+        public async Task<List<PlayerWithClubDTO>> GetPlayersWithClubBySeasonAsync(Season season)
+        {
+            return await _context.Player
+                .Include(p => p.PlayerSeasons)
+                    .ThenInclude(pc => pc.Club)
+                .Where(p => p.PlayerSeasons.Any(pc => pc.SeasonId == season.Id))
+                .Select(p => new PlayerWithClubDTO
+                {
+                    Player = p,
+                    Club = p.PlayerSeasons
+                        .Where(pc => pc.SeasonId == season.Id)
+                        .Select(pc => pc.Club)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+        }
+
     }
 }
