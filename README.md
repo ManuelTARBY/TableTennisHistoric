@@ -23,7 +23,7 @@ Application web personnelle de suivi de résultats de tennis de table, développ
 1. Cloner le dépôt :
    ```bash
    git clone https://https://github.com/ManuelTARBY/TableTennisHistoric.git
-   cd votre-repo
+   cd TableTennisHistoric
    ```
 
 2. Configurer la chaîne de connexion via les user-secrets .NET :
