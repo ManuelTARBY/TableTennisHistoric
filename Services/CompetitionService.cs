@@ -2,10 +2,11 @@
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class CompetitionService
+    public class CompetitionService: ICompetitionService
     {
 
         private readonly TableTennisHistoricDbContext _context;

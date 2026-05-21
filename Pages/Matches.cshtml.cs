@@ -18,9 +18,9 @@ namespace TableTennisHistoric.Pages
         public List<MatchDTO> MatchesDTO { get; set; } = new();
         private IMatchService _matchService { get; set; }
         private PlayerService _playerService { get; set; }
-        private CompetitionService _competitionService;
+        private ICompetitionService _competitionService;
 
-        public MatchesModel(TableTennisHistoricDbContext context, IMatchService matchService, PlayerService playerService, CompetitionService competitionService)
+        public MatchesModel(TableTennisHistoricDbContext context, IMatchService matchService, PlayerService playerService, ICompetitionService competitionService)
         {
             _context = context;
             _matchService = matchService;

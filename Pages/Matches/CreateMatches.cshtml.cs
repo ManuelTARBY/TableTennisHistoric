@@ -6,17 +6,18 @@ using TableTennisHistoric.Datas;
 using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Services;
 using System.ComponentModel.DataAnnotations;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Matches
 {
     public class CreateMatchModel : PageModel
     {
         private readonly TableTennisHistoricDbContext _context;
-        private readonly CompetitionService _competitionService;
+        private readonly ICompetitionService _competitionService;
         private readonly SeasonService _seasonService;
 
         public CreateMatchModel(
-            TableTennisHistoricDbContext context, CompetitionService competitionService, SeasonService seasonService)
+            TableTennisHistoricDbContext context, ICompetitionService competitionService, SeasonService seasonService)
         {
             _context = context;
             _competitionService = competitionService;

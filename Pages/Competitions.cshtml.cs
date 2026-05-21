@@ -14,9 +14,9 @@ namespace TableTennisHistoric.Pages
     {
         private readonly TableTennisHistoricDbContext _context;
         private readonly ISeasonService _seasonService;
-        private readonly CompetitionService _competitionService;
+        private readonly ICompetitionService _competitionService;
 
-        public CompetitionsModel(TableTennisHistoricDbContext context, ISeasonService seasonService, CompetitionService competitionService)
+        public CompetitionsModel(TableTennisHistoricDbContext context, ISeasonService seasonService, ICompetitionService competitionService)
         {
             _context = context;
             _seasonService = seasonService;
