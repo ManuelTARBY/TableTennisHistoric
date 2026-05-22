@@ -40,6 +40,7 @@ builder.Services.AddScoped<IMatchSetService, MatchSetService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IChampionshipService, ChampionshipService>();
+builder.Services.AddScoped<IIndexService, IndexService>();
 
 // Session
 builder.Services.AddDistributedMemoryCache(); // stockage en mémoire pour la session

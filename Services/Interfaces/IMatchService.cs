@@ -28,5 +28,6 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<MatchesPageDataDTO> GetMatchesPageDataAsync();
         Task<bool> CreateMatchWithSetsAsync(CreateMatchDTO dto);
         Task<List<MatchDTO>> GetMatchesByOpponentAsync(int opponentId);
+        Task DeleteMatchAsync(int matchId);
     }
 }

@@ -682,5 +682,14 @@ namespace TableTennisHistoric.Services
                 })
                 .ToListAsync();
         }
+        public async Task DeleteMatchAsync(int matchId)
+        {
+            var match = await _context.TableTennisMatch.FindAsync(matchId);
+            if (match != null)
+            {
+                _context.TableTennisMatch.Remove(match);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
