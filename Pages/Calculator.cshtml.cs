@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using TableTennisHistoric.Services;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
@@ -8,10 +9,14 @@ namespace TableTennisHistoric.Pages
     public class PointsCalculatorModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly IIndexService _indexService;
+        private readonly ISeasonService _seasonService;
 
-        public PointsCalculatorModel(IMatchService matchService)
+        public PointsCalculatorModel(IMatchService matchService, IIndexService indexService, ISeasonService seasonService)
         {
             _matchService = matchService;
+            _indexService = indexService;
+            _seasonService = seasonService;
         }
 
         [BindProperty]
@@ -41,9 +46,20 @@ namespace TableTennisHistoric.Pages
             public MatchResult Result { get; set; }
         }
 
-        public void OnGet()
+        public async Task OnGet()
         {
             ModelState.Clear();
+
+            var season = await _seasonService.GetCurrentSeasonAsync();
+            if (season != null)
+            {
+                var data = await _indexService.GetIndexDataAsync(season.Id);
+
+                if (data.MonthlyPoints != null)
+                {
+                    Input.MyPoints = Math.Round(data.MonthlyPoints.Value, 2);
+                }
+            }
         }
 
         public void OnPost()
