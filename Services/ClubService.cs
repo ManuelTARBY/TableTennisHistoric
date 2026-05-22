@@ -1,13 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class ClubService
+    public class ClubService : IClubService
     {
-
         private readonly TableTennisHistoricDbContext _context;
 
         public ClubService(TableTennisHistoricDbContext context)
@@ -22,15 +23,55 @@ namespace TableTennisHistoric.Services
 
         public ClubDTO ConvertClubToClubDTO(Club club)
         {
-            ClubDTO clubDTO = new()
+            return new ClubDTO
             {
                 License_number = club.License_number,
                 Name = club.Name,
                 Name_abrev = club.Name_abrev,
                 City = club.City
             };
+        }
 
-            return clubDTO;
+        public async Task<ClubsPageDataDTO> GetClubsPageDataAsync(int? selectedClubId)
+        {
+            var clubs = await _context.Club.OrderBy(c => c.Name).ToListAsync();
+            var clubSelectList = new SelectList(clubs, "Id", "Name");
+
+            var selectedClubTeams = new List<Team>();
+            if (selectedClubId.HasValue)
+            {
+                selectedClubTeams = await _context.Team
+                    .Where(t => t.ClubId == selectedClubId.Value)
+                    .OrderBy(t => t.Id)
+                    .ToListAsync();
+            }
+
+            return new ClubsPageDataDTO
+            {
+                Clubs = clubs,
+                ClubSelectList = clubSelectList,
+                SelectedClubTeams = selectedClubTeams
+            };
+        }
+
+        public async Task CreateClubAsync(Club club)
+        {
+            _context.Club.Add(club);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CreateTeamsAsync(int clubId, string baseName, int count)
+        {
+            for (int i = 1; i <= count; i++)
+            {
+                _context.Team.Add(new Team
+                {
+                    Name = $"{baseName} {i}",
+                    ClubId = clubId
+                });
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
