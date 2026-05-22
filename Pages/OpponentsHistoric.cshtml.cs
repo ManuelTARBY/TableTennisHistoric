@@ -27,6 +27,9 @@ namespace TableTennisHistoric.Pages
         public decimal CounterOfDefeat { get; set; } = 0;
         public decimal CounterOfWithdraw { get; set; } = 0;
 
+        public Dictionary<string, decimal?> RankingHistory { get; set; } = new();
+        public int RankingMaxValue { get; set; }
+
         public async Task OnGetAsync()
         {
             OpponentsSelectList = await _playerService.GetOpponentsSelectListAsync();
@@ -42,7 +45,13 @@ namespace TableTennisHistoric.Pages
                     CounterOfWithdraw = Matches.Count(m => m.Result == MatchDTO.MatchResult.F);
                     VictoryPercentage = Math.Round(CounterOfVictory / (Matches.Count - CounterOfWithdraw) * 100m, 2);
                 }
+
+                // On récupère l'historique de classement
+                var rankingHistory = await _playerService.GetRankingHistoryByPlayerIdAsync(SelectedOpponentId);
+                RankingHistory = rankingHistory.RankingHistory;
+                RankingMaxValue = rankingHistory.RankingMaxValue;
             }
+
         }
 
         public IActionResult OnPostSelectOpponentAsync()

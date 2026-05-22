@@ -141,13 +141,19 @@ namespace TableTennisHistoric.Services
                 })
                 .ToListAsync();
         }
-        public async Task<RankingHistoryDTO> GetRankingHistoryAsync()
+
+        public async Task<RankingHistoryDTO> GetRankingHistoryByPlayerIdAsync(int? playerId)
         {
             var playerSeasons = await _context.PlayerSeason
-                .Where(ps => ps.Player.Is_me)
+                .Where(ps => ps.PlayerId == playerId)
                 .Include(ps => ps.Season)
                 .OrderBy(ps => ps.Season.Start_date)
                 .ToListAsync();
+            //var playerSeasons = await _context.PlayerSeason
+            //    .Where(ps => ps.Player.Is_me)
+            //    .Include(ps => ps.Season)
+            //    .OrderBy(ps => ps.Season.Start_date)
+            //    .ToListAsync();
 
             var rankingHistory = new Dictionary<string, decimal?>();
 

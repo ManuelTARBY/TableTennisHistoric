@@ -17,7 +17,8 @@ namespace TableTennisHistoric.Pages.Players
 
         public async Task OnGetAsync()
         {
-            var data = await _playerService.GetRankingHistoryAsync();
+            var player = await _playerService.GetMeAsync();
+            var data = await _playerService.GetRankingHistoryByPlayerIdAsync(player.Id);
             RankingHistory = data.RankingHistory;
             RankingMaxValue = data.RankingMaxValue;
         }
