@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
@@ -173,6 +174,20 @@ namespace TableTennisHistoric.Services
                 RankingMaxValue = maxValue
             };
         }
+        public async Task<SelectList> GetOpponentsSelectListAsync()
+        {
+            var opponents = await _context.Player
+                .Where(p => p.Is_me == false)
+                .OrderBy(p => p.First_name)
+                .ThenBy(p => p.Last_name)
+                .Select(p => new
+                {
+                    Id = p.Id,
+                    FullName = $"{p.First_name} {p.Last_name}"
+                })
+                .ToListAsync();
 
+            return new SelectList(opponents, "Id", "FullName");
+        }
     }
 }

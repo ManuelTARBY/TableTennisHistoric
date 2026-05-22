@@ -1,4 +1,5 @@
-﻿using TableTennisHistoric.DTO;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
 
 namespace TableTennisHistoric.Services.Interfaces
@@ -20,5 +21,6 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<PlayerSeason?> GetPlayerSeasonAsync(Player player, Season season);
         Task<List<PlayerWithClubDTO>> GetPlayersWithClubBySeasonAsync(Season season);
         Task<RankingHistoryDTO> GetRankingHistoryAsync();
+        Task<SelectList> GetOpponentsSelectListAsync();
     }
 }

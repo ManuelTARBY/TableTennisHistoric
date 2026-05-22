@@ -634,5 +634,53 @@ namespace TableTennisHistoric.Services
 
             return true;
         }
+        public async Task<List<MatchDTO>> GetMatchesByOpponentAsync(int opponentId)
+        {
+            return await _context.TableTennisMatch
+                .Where(m => m.OpponentId == opponentId)
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Competition)
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Season)
+                .Include(m => m.Opponent)
+                    .ThenInclude(p => p.PlayerSeasons)
+                        .ThenInclude(pc => pc.Club)
+                .Include(m => m.Sets)
+                .OrderByDescending(m => m.Date_match)
+                .ThenByDescending(m => m.Id)
+                .Select(m => new MatchDTO
+                {
+                    Id = m.Id,
+                    Date_of_match = m.Date_match,
+                    Competition = m.CompetitionCoefficient.Competition.Name,
+                    Coefficient = m.CompetitionCoefficient.Coefficient,
+                    Opponent_first_name = m.Opponent.First_name,
+                    Opponent_last_name = m.Opponent.Last_name,
+                    Opponent_club = m.Opponent.PlayerSeasons
+                        .Where(pc => pc.SeasonId == m.CompetitionCoefficient.SeasonId)
+                        .Select(pc => pc.Club.Name)
+                        .FirstOrDefault(),
+                    Season_name = m.CompetitionCoefficient.Season.Name,
+                    My_points_at_match = m.My_points_at_match,
+                    Opponent_points_at_match = m.Opponent_points_at_match,
+                    Point_difference = m.Opponent_points_at_match - m.My_points_at_match,
+                    Comment = m.Comment,
+                    Result = m.Result == TableTennisMatch.MatchResult.V
+                        ? MatchDTO.MatchResult.V
+                        : m.Result == TableTennisMatch.MatchResult.D
+                            ? MatchDTO.MatchResult.D
+                            : MatchDTO.MatchResult.F,
+                    MatchSets = m.Sets
+                        .OrderBy(s => s.SetNumber)
+                        .Select(s => new SetDTO
+                        {
+                            SetNumber = s.SetNumber,
+                            Player1Score = s.Player1Score,
+                            Player2Score = s.Player2Score
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+        }
     }
 }

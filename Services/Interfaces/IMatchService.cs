@@ -27,5 +27,6 @@ namespace TableTennisHistoric.Services.Interfaces
         decimal ComputeFromCalculator(decimal myPoints, decimal opponentPoints, decimal coefficient, bool isVictory);
         Task<MatchesPageDataDTO> GetMatchesPageDataAsync();
         Task<bool> CreateMatchWithSetsAsync(CreateMatchDTO dto);
+        Task<List<MatchDTO>> GetMatchesByOpponentAsync(int opponentId);
     }
 }
