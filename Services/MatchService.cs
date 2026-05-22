@@ -511,5 +511,128 @@ namespace TableTennisHistoric.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<MatchesPageDataDTO> GetMatchesPageDataAsync()
+        {
+            var matchesDTO = await _context.TableTennisMatch
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Competition)
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Season)
+                .Include(m => m.Opponent)
+                    .ThenInclude(p => p.PlayerSeasons)
+                        .ThenInclude(pc => pc.Club)
+                .OrderByDescending(m => m.Date_match)
+                .ThenByDescending(m => m.Id)
+                .Select(m => new MatchDTO
+                {
+                    Id = m.Id,
+                    Date_of_match = m.Date_match,
+                    Competition = m.CompetitionCoefficient.Competition.Name,
+                    Coefficient = m.CompetitionCoefficient.Coefficient,
+                    OpponnentId = m.OpponentId,
+                    Opponent_first_name = m.Opponent.First_name,
+                    Opponent_last_name = m.Opponent.Last_name,
+                    Opponent_full_name = m.Opponent.First_name + " " + m.Opponent.Last_name,
+                    Opponent_club = m.Opponent.PlayerSeasons
+                        .Where(pc => pc.SeasonId == m.CompetitionCoefficient.SeasonId)
+                        .Select(pc => pc.Club.Name)
+                        .FirstOrDefault(),
+                    Opponent_points_at_match = m.Opponent_points_at_match,
+                    Comment = m.Comment,
+                    Result = Enum.Parse<MatchDTO.MatchResult>(m.Result.ToString())
+                })
+                .ToListAsync();
+
+            var currentSeason = await _seasonService.GetCurrentSeasonAsync();
+
+            var competitionCoefficients = currentSeason != null
+                ? await _context.CompetitionCoefficient
+                    .Include(cc => cc.Competition)
+                    .Where(cc => cc.Competition != null && cc.SeasonId == currentSeason.Id)
+                    .Select(cc => new SelectListItem
+                    {
+                        Value = cc.Id.ToString(),
+                        Text = cc.Competition.Name
+                    })
+                    .ToListAsync()
+                : new List<SelectListItem>();
+
+            var opponents = await _context.Player
+                .Where(p => p.Id != 1)
+                .OrderBy(p => p.First_name)
+                .ThenBy(p => p.Last_name)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.First_name + " " + p.Last_name
+                })
+                .ToListAsync();
+
+            var stages = await _context.Stage
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            return new MatchesPageDataDTO
+            {
+                MatchesDTO = matchesDTO,
+                CompetitionCoefficients = competitionCoefficients,
+                Opponents = opponents,
+                Stages = stages
+            };
+        }
+
+        public async Task<bool> CreateMatchWithSetsAsync(CreateMatchDTO dto)
+        {
+            var competitionCoefficient = await _competitionService.GetCompetitionCoefficientByIdAsync(dto.CompetitionCoefficientId);
+            var opponent = await _context.Player.FindAsync(dto.OpponentId);
+
+            if (competitionCoefficient == null || opponent == null)
+                return false;
+
+            var match = new TableTennisMatch
+            {
+                Date_match = DateOnly.FromDateTime(dto.Date_match),
+                CompetitionCoefficientId = dto.CompetitionCoefficientId,
+                StageId = dto.StageId,
+                OpponentId = dto.OpponentId,
+                My_points_at_match = dto.My_points_at_match,
+                Opponent_points_at_match = dto.Opponent_points_at_match,
+                Result = dto.Result,
+                CompetitionCoefficient = competitionCoefficient,
+                Opponent = opponent,
+                Comment = dto.Comment
+            };
+
+            _context.TableTennisMatch.Add(match);
+            await _context.SaveChangesAsync();
+
+            if (dto.SetMy.Any(s => s.HasValue) || dto.SetOpp.Any(s => s.HasValue))
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (dto.SetMy[i].HasValue && dto.SetOpp[i].HasValue)
+                    {
+                        _context.MatchSet.Add(new MatchSet
+                        {
+                            MatchId = match.Id,
+                            Player1Score = dto.SetMy[i]!.Value,
+                            Player2Score = dto.SetOpp[i]!.Value,
+                            SetNumber = i + 1,
+                            Match = match
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
+        }
     }
 }
