@@ -4,16 +4,17 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.Models;
 using Microsoft.EntityFrameworkCore;
+using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Players
 {
     public class CreateModel : PageModel
     {
-        private readonly TableTennisHistoricDbContext _context;
+        public IPlayerService _playerService { get; }
 
-        public CreateModel(TableTennisHistoricDbContext context)
+        public CreateModel(IPlayerService playerService)
         {
-            _context = context;
+            _playerService = playerService;
         }
 
         // --- JOUEUR ---
@@ -53,19 +54,10 @@ namespace TableTennisHistoric.Pages.Players
 
         private async Task LoadSelectListsAsync()
         {
-            Players = new SelectList(await _context.Player
-                .OrderBy(p => p.First_name)
-                .Select(p => new
-                {
-                    p.Id,
-                    FullName = p.First_name + " " + p.Last_name
-                })
-                .ToListAsync(), "Id", "FullName");
-
-            Clubs = new SelectList(await _context.Club
-                .OrderBy(c => c.Name)
-                .ToListAsync(), "Id", "Name");
-            Seasons = new SelectList(await _context.Season.ToListAsync(), "Id", "Name");
+            var lists = await _playerService.GetCreatePlayerSelectListsAsync();
+            Players = lists.Players;
+            Clubs = lists.Clubs;
+            Seasons = lists.Seasons;
         }
 
         // ==============================
@@ -79,9 +71,7 @@ namespace TableTennisHistoric.Pages.Players
                 return Page();
             }
 
-            Player.Last_name = Player.Last_name.ToUpper();
-            _context.Player.Add(Player);
-            await _context.SaveChangesAsync();
+            await _playerService.CreatePlayerAsync(Player);
 
             SuccessMessagePlayer = $"Le joueur {Player.First_name} {Player.Last_name.ToUpper()} a bien été créé.";
             await LoadSelectListsAsync();
@@ -103,19 +93,22 @@ namespace TableTennisHistoric.Pages.Players
                 return Page();
             }
 
-            var playerSeason = new PlayerSeason
+            var (success, error) = await _playerService.CreatePlayerSeasonAsync(new PlayerSeason
             {
                 PlayerId = SelectedPlayerId,
                 SeasonId = SelectedSeasonId,
                 ClubId = SelectedClubId,
-                Category = SelectedCategory.Value,
+                Category = SelectedCategory!.Value,
                 Points_start = StartPoints,
                 Points_middle = MiddlePoints
-            };
+            });
 
-            _context.PlayerSeason.Add(playerSeason);
-
-            await _context.SaveChangesAsync();
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, error!);
+                await LoadSelectListsAsync();
+                return Page();
+            }
 
             SuccessMessagePlayerClub = "L'affiliation joueur/club/saison a été créée avec succès.";
             SelectedPlayerId = 0;
@@ -124,9 +117,9 @@ namespace TableTennisHistoric.Pages.Players
             SelectedCategory = null;
             StartPoints = 0;
             MiddlePoints = 0;
+            ModelState.Clear();
             await LoadSelectListsAsync();
 
-            ModelState.Clear();
             return Page();
         }
     }

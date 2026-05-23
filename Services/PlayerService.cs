@@ -149,11 +149,6 @@ namespace TableTennisHistoric.Services
                 .Include(ps => ps.Season)
                 .OrderBy(ps => ps.Season.Start_date)
                 .ToListAsync();
-            //var playerSeasons = await _context.PlayerSeason
-            //    .Where(ps => ps.Player.Is_me)
-            //    .Include(ps => ps.Season)
-            //    .OrderBy(ps => ps.Season.Start_date)
-            //    .ToListAsync();
 
             var rankingHistory = new Dictionary<string, decimal?>();
 
@@ -180,6 +175,7 @@ namespace TableTennisHistoric.Services
                 RankingMaxValue = maxValue
             };
         }
+
         public async Task<SelectList> GetOpponentsSelectListAsync()
         {
             var opponents = await _context.Player
@@ -194,6 +190,46 @@ namespace TableTennisHistoric.Services
                 .ToListAsync();
 
             return new SelectList(opponents, "Id", "FullName");
+        }
+
+        public async Task<(bool Success, string? Error)> CreatePlayerSeasonAsync(PlayerSeason playerSeason)
+        {
+            var exists = await _context.PlayerSeason
+                .AnyAsync(ps => ps.PlayerId == playerSeason.PlayerId && ps.SeasonId == playerSeason.SeasonId);
+
+            if (exists)
+                return (false, "Une affiliation existe déjà pour ce joueur et cette saison.");
+
+            _context.PlayerSeason.Add(playerSeason);
+            await _context.SaveChangesAsync();
+            return (true, null);
+        }
+
+        public async Task CreatePlayerAsync(Player player)
+        {
+            player.Last_name = player.Last_name.ToUpper();
+            _context.Player.Add(player);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<(SelectList Players, SelectList Clubs, SelectList Seasons)> GetCreatePlayerSelectListsAsync()
+        {
+            var players = new SelectList(
+                await _context.Player
+                    .OrderBy(p => p.First_name)
+                    .Select(p => new { p.Id, FullName = p.First_name + " " + p.Last_name })
+                    .ToListAsync(),
+                "Id", "FullName");
+
+            var clubs = new SelectList(
+                await _context.Club.OrderBy(c => c.Name).ToListAsync(),
+                "Id", "Name");
+
+            var seasons = new SelectList(
+                await _context.Season.ToListAsync(),
+                "Id", "Name");
+
+            return (players, clubs, seasons);
         }
     }
 }

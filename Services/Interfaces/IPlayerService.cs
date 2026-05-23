@@ -22,5 +22,8 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<List<PlayerWithClubDTO>> GetPlayersWithClubBySeasonAsync(Season season);
         Task<RankingHistoryDTO> GetRankingHistoryByPlayerIdAsync(int? playerId);
         Task<SelectList> GetOpponentsSelectListAsync();
+        Task<(bool Success, string? Error)> CreatePlayerSeasonAsync(PlayerSeason playerSeason);
+        Task CreatePlayerAsync(Player player);
+        Task<(SelectList Players, SelectList Clubs, SelectList Seasons)> GetCreatePlayerSelectListsAsync();
     }
 }

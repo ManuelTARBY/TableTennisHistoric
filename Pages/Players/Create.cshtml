@@ -85,6 +85,18 @@
                         <input asp-for="MiddlePoints" type="number" step="1" class="form-control" required />
                     </div>
 
+                    @if (ViewData.ModelState.ContainsKey(string.Empty) && ViewData.ModelState[string.Empty].Errors.Any())
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
                     <button type="submit" class="btn btn-success w-100 mt-3">Créer l'affiliation</button>
                 </form>
 
