@@ -1,6 +1,6 @@
 # 🏓 TableTennisHistoric
 
-Application web personnelle de suivi de résultats de tennis de table (compétition individuelles et championnats), développée en ASP.NET Core Razor Pages.
+Application web personnelle de suivi de résultats de tennis de table, développée en ASP.NET Core Razor Pages.
 
 ## 🛠️ Stack technique
 
@@ -49,27 +49,41 @@ Application web personnelle de suivi de résultats de tennis de table (compétit
 TableTennisHistoric/
 ├── Datas/                  # DbContext et configuration EF Core
 ├── DTO/                    # Objets de transfert de données
-│   ├── MatchDTO.cs
-│   ├── PlayerDTO.cs
-│   ├── SeasonDTO.cs
-│   ├── CompetitionDTO.cs
 │   ├── ChampionshipDTO.cs  # Inclut ChampionshipMatchData, ChampionshipTeamResult, ChampionshipPageData
 │   ├── ClubDTO.cs
 │   ├── ClubsPageDataDTO.cs
+│   ├── CompetitionDTO.cs
 │   ├── CompetitionsPageDataDTO.cs
 │   ├── CreateMatchDTO.cs
 │   ├── IndexDataDTO.cs
+│   ├── MatchDTO.cs
 │   ├── MatchesPageDataDTO.cs
+│   ├── PlayerDTO.cs
+│   ├── PlayerSeasonDTO.cs
 │   ├── PlayerWithClubDTO.cs
 │   ├── RankingHistoryDTO.cs
+│   ├── SeasonDTO.cs
 │   └── SetDTO.cs
 ├── Migrations/             # Migrations Entity Framework Core
 ├── Models/                 # Entités de la base de données
 ├── Pages/                  # Pages Razor (UI + logique allégée)
 │   ├── Championship/
+│   │   ├── Create.cshtml   # Création et gestion des championnats
+│   │   └── Read.cshtml     # Consultation et saisie des scores
 │   ├── Matches/
+│   │   ├── CreateMatch.cshtml
+│   │   └── UpdateMatch.cshtml
 │   ├── Players/
-│   └── ...
+│   │   ├── Create.cshtml           # Création joueur et affiliation
+│   │   ├── ManagePlayerSeasons.cshtml  # Modification/suppression des affiliations
+│   │   └── RankingHistory.cshtml
+│   ├── Clubs.cshtml
+│   ├── Competitions.cshtml
+│   ├── Index.cshtml
+│   ├── Matches.cshtml
+│   ├── OpponentsHistoric.cshtml
+│   ├── Players.cshtml
+│   └── PointsCalculator.cshtml
 ├── Services/               # Services métiers
 │   ├── Interfaces/         # Interfaces des services
 │   │   ├── IChampionshipService.cs
@@ -116,6 +130,10 @@ Les migrations sont gérées via Entity Framework Core. En cas de changement de 
 
 > ⚠️ La chaîne de connexion ne doit jamais être commitée. Elle est gérée via les user-secrets .NET en développement.
 
+### Contraintes notables
+
+- La paire `PlayerId/SeasonId` dans `PlayerSeason` est unique — un joueur ne peut avoir qu'une seule affiliation par saison.
+
 ## 🚀 Déploiement local
 
 L'application se lance automatiquement sur `http://localhost:44304` et ouvre le navigateur par défaut hors mode Debug.
@@ -128,3 +146,4 @@ La saison sélectionnée sur la page d'accueil est mémorisée en session et res
 - Les user-secrets sont stockés dans `%APPDATA%\Microsoft\UserSecrets\` sous Windows
 - La session est configurée avec un timeout de 8h (`AddSession` dans `Program.cs`)
 - Les tables de gains (points par match) sont centralisées dans `MatchService` — ne pas les dupliquer ailleurs
+- La page `ManagePlayerSeasons` est accessible depuis le bouton à droite du sélecteur d'adversaire dans `OpponentsHistoric`
