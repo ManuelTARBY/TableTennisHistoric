@@ -212,6 +212,51 @@ namespace TableTennisHistoric.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdatePlayerSeasonAsync(PlayerSeasonDTO dto)
+        {
+            var playerSeason = await _context.PlayerSeason.FindAsync(dto.Id);
+            if (playerSeason == null) return;
+
+            playerSeason.Points_start = dto.Points_start;
+            playerSeason.Points_middle = dto.Points_middle;
+            playerSeason.ClubId = dto.ClubId;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeletePlayerSeasonAsync(int id)
+        {
+            var playerSeason = await _context.PlayerSeason.FindAsync(id);
+            if (playerSeason != null)
+            {
+                _context.PlayerSeason.Remove(playerSeason);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<PlayerSeasonDTO>> GetPlayerSeasonsByPlayerIdAsync(int playerId)
+        {
+            return await _context.PlayerSeason
+                .Include(ps => ps.Player)
+                .Include(ps => ps.Season)
+                .Include(ps => ps.Club)
+                .Where(ps => ps.PlayerId == playerId)
+                .OrderBy(ps => ps.Season.Start_date)
+                .Select(ps => new PlayerSeasonDTO
+                {
+                    Id = ps.Id,
+                    PlayerFullName = ps.Player.First_name + " " + ps.Player.Last_name,
+                    SeasonName = ps.Season.Name,
+                    ClubName = ps.Club.Name,
+                    Points_start = ps.Points_start,
+                    Points_middle = ps.Points_middle,
+                    PlayerId = ps.PlayerId,
+                    SeasonId = ps.SeasonId,
+                    ClubId = ps.ClubId
+                })
+                .ToListAsync();
+        }
+
         public async Task<(SelectList Players, SelectList Clubs, SelectList Seasons)> GetCreatePlayerSelectListsAsync()
         {
             var players = new SelectList(

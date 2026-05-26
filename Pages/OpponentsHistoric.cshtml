@@ -11,16 +11,25 @@
     <div>
         <form method="post" asp-page-handler="SelectOpponent">
             <label class="form-label fw-bold">Adversaire</label>
-            <select asp-for="SelectedOpponentId"
-                    asp-items="Model.OpponentsSelectList"
-                    class="form-select"
-                    onchange="this.form.submit()">
-                <option value="">-- Sélectionner un adversaire --</option>
-            </select>
+
+            <div class="d-flex gap-2">
+                <select asp-for="SelectedOpponentId"
+                        asp-items="Model.OpponentsSelectList"
+                        class="form-select"
+                        onchange="this.form.submit()">
+                    <option value="">-- Sélectionner un adversaire --</option>
+                </select>
+
+                <a asp-page="/Players/ManagePlayerSeason"
+                   asp-route-playerId="@Model.SelectedOpponentId"
+                   class="btn btn-outline-secondary"
+                   title="Gérer les affiliations">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+            </div>
         </form>
     </div>
 </div>
-
 @if (Model.SelectedOpponentId.HasValue)
 {
 <!-- Graphique de l'évolution des points dans le temps -->

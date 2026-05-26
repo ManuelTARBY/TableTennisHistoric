@@ -1,0 +1,103 @@
+﻿@page "{playerId:int}"
+@model TableTennisHistoric.Pages.Players.ManagePlayerSeasonModel
+@{
+    ViewData["Title"] = "Gestion des affiliations";
+}
+
+<h1 class="mb-4 text-center">
+    Affiliations de @Model.PlayerFullName
+</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p class="mb-0">@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+@if (!Model.PlayerSeasons.Any())
+{
+    <div class="alert alert-info">Aucune affiliation trouvée pour ce joueur.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Saison</th>
+                <th>Club</th>
+                <th>Points début</th>
+                <th>Points milieu</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ps in Model.PlayerSeasons)
+            {
+                <!-- Forms déclarés en dehors du tableau -->
+                <form id="update-form-@ps.Id" method="post" asp-page-handler="Update">
+                    <input type="hidden" name="EditForm.Id" value="@ps.Id" />
+                    <input type="hidden" name="EditForm.PlayerId" value="@ps.PlayerId" />
+                    <input type="hidden" name="EditForm.SeasonId" value="@ps.SeasonId" />
+                    <input type="hidden" name="EditForm.ClubId" value="@ps.ClubId" />
+                    <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
+                </form>
+
+                <form id="delete-form-@ps.Id" method="post" asp-page-handler="Delete">
+                    <input type="hidden" name="id" value="@ps.Id" />
+                    <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
+                </form>
+
+                <!-- Ligne du tableau avec référence aux forms via l'attribut form= -->
+                <tr>
+                    <td>@ps.SeasonName</td>
+                    <td>@ps.ClubName</td>
+                    <td>
+                        <input type="number"
+                               name="EditForm.Points_start"
+                               value="@Math.Round(ps.Points_start ?? 0, 0)"
+                               form="update-form-@ps.Id"
+                               class="form-control form-control-sm text-center"
+                               style="width: 100px;" step="1" />
+                    </td>
+                    <td>
+                        <input type="number"
+                               name="EditForm.Points_middle"
+                               value="@Math.Round(ps.Points_middle ?? 0, 0)"
+                               form="update-form-@ps.Id"
+                               class="form-control form-control-sm text-center"
+                               style="width: 100px;" step="1" />
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group">
+                            <button type="submit"
+                                    form="update-form-@ps.Id"
+                                    class="btn btn-sm btn-outline-warning"
+                                    title="Enregistrer">
+                                <i class="bi bi-save"></i>
+                            </button>
+                            <button type="submit"
+                                    form="delete-form-@ps.Id"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Supprimer"
+                                    onclick="return confirm('Supprimer cette affiliation ?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="mt-4">
+    <a asp-page="/OpponentsHistoric"
+       asp-route-SelectedOpponentId="@Model.PlayerId"
+       class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
