@@ -75,7 +75,7 @@ TableTennisHistoric/
 │   │   └── UpdateMatch.cshtml
 │   ├── Players/
 │   │   ├── Create.cshtml           # Création joueur et affiliation
-│   │   ├── ManagePlayerSeasons.cshtml  # Modification/suppression des affiliations
+│   │   ├── ManagePlayerSeason.cshtml  # Modification/suppression des affiliations
 │   │   └── RankingHistory.cshtml
 │   ├── Clubs.cshtml
 │   ├── Competitions.cshtml
@@ -146,4 +146,4 @@ La saison sélectionnée sur la page d'accueil est mémorisée en session et res
 - Les user-secrets sont stockés dans `%APPDATA%\Microsoft\UserSecrets\` sous Windows
 - La session est configurée avec un timeout de 8h (`AddSession` dans `Program.cs`)
 - Les tables de gains (points par match) sont centralisées dans `MatchService` — ne pas les dupliquer ailleurs
-- La page `ManagePlayerSeasons` est accessible depuis le bouton à droite du sélecteur d'adversaire dans `OpponentsHistoric`
+- La page `ManagePlayerSeason` est accessible depuis le bouton à droite du sélecteur d'adversaire dans `OpponentsHistoric`
