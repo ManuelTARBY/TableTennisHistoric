@@ -37,7 +37,6 @@ else
         <tbody>
             @foreach (var ps in Model.PlayerSeasons)
             {
-                <!-- Forms déclarés en dehors du tableau -->
                 <form id="update-form-@ps.Id" method="post" asp-page-handler="Update">
                     <input type="hidden" name="EditForm.Id" value="@ps.Id" />
                     <input type="hidden" name="EditForm.PlayerId" value="@ps.PlayerId" />
@@ -46,12 +45,6 @@ else
                     <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
                 </form>
 
-                <form id="delete-form-@ps.Id" method="post" asp-page-handler="Delete">
-                    <input type="hidden" name="id" value="@ps.Id" />
-                    <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
-                </form>
-
-                <!-- Ligne du tableau avec référence aux forms via l'attribut form= -->
                 <tr>
                     <td>@ps.SeasonName</td>
                     <td>@ps.ClubName</td>
@@ -79,11 +72,14 @@ else
                                     title="Enregistrer">
                                 <i class="bi bi-save"></i>
                             </button>
-                            <button type="submit"
-                                    form="delete-form-@ps.Id"
+                            <button type="button"
                                     class="btn btn-sm btn-outline-danger"
                                     title="Supprimer"
-                                    onclick="return confirm('Supprimer cette affiliation ?')">
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-bs-id="@ps.Id"
+                                    data-bs-season="@ps.SeasonName.ToLower()"
+                                    data-bs-player="@Model.PlayerFullName">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -94,6 +90,34 @@ else
     </table>
 }
 
+<!-- Modale de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Êtes-vous sûr de vouloir supprimer la 
+                    <strong id="modalSeasonName"></strong>
+                    de <strong id="modalPlayerName"></strong> ?
+                </p>
+                <p class="text-muted small">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-page-handler="Delete">
+                    <input type="hidden" name="id" id="modalPlayerSeasonId" />
+                    <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mt-4">
     <a asp-page="/OpponentsHistoric"
        asp-route-SelectedOpponentId="@Model.PlayerId"
@@ -101,3 +125,23 @@ else
         <i class="bi bi-arrow-left"></i> Retour
     </a>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', event => {
+                    const button = event.relatedTarget;
+                    const id = button.getAttribute('data-bs-id');
+                    const season = button.getAttribute('data-bs-season');
+                    const player = button.getAttribute('data-bs-player');
+
+                    document.getElementById('modalPlayerSeasonId').value = id;
+                    document.getElementById('modalSeasonName').textContent = season;
+                    document.getElementById('modalPlayerName').textContent = player;
+                });
+            }
+        });
+    </script>
+}
