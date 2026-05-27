@@ -1,0 +1,90 @@
+﻿@page
+@model TableTennisHistoric.Pages.UpdateSeasonModel
+@{
+    ViewData["Title"] = "Gestion des saisons";
+}
+
+<h1 class="mb-4 text-center">Gestion des saisons</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p class="mb-0">@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+<table class="table table-striped align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Nom</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Fin phase 1</th>
+            <th>Dérive P1</th>
+            <th>Dérive P2</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model.Seasons)
+        {
+            <form id="update-form-@s.Id" method="post" asp-page-handler="Update">
+                <input type="hidden" name="EditForm.Id" value="@s.Id" />
+            </form>
+
+            <tr>
+                <!-- Nom en lecture seule -->
+                <td class="fw-semibold">@s.Name</td>
+
+                <td>
+                    <input type="date"
+                           name="EditForm.Start_date"
+                           value="@s.Start_date.ToString("yyyy-MM-dd")"
+                           form="update-form-@s.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="date"
+                           name="EditForm.End_date"
+                           value="@s.End_date.ToString("yyyy-MM-dd")"
+                           form="update-form-@s.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="date"
+                           name="EditForm.Phase1_End_date"
+                           value="@s.Phase1_End_date.ToString("yyyy-MM-dd")"
+                           form="update-form-@s.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="number"
+                           name="EditForm.p1_drift"
+                           value="@s.p1_drift?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                           form="update-form-@s.Id"
+                           class="form-control form-control-sm text-center"
+                           style="width: 90px;" step="0.01" />
+                </td>
+                <td>
+                    <input type="number"
+                           name="EditForm.p2_drift"
+                           value="@s.p2_drift?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                           form="update-form-@s.Id"
+                           class="form-control form-control-sm text-center"
+                           style="width: 90px;" step="0.01" />
+                </td>
+                <td class="text-center">
+                    <button type="submit"
+                            form="update-form-@s.Id"
+                            class="btn btn-sm btn-outline-warning"
+                            title="Enregistrer">
+                        <i class="bi bi-save"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
