@@ -59,6 +59,7 @@ TableTennisHistoric/
 │   ├── MatchDTO.cs
 │   ├── MatchesPageDataDTO.cs
 │   ├── PlayerDTO.cs
+	├── PlayerEditDTO.cs
 │   ├── PlayerSeasonDTO.cs
 │   ├── PlayerWithClubDTO.cs
 │   ├── RankingHistoryDTO.cs

@@ -1,125 +1,93 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using TableTennisHistoric.Datas;
-using TableTennisHistoric.Models;
-using Microsoft.EntityFrameworkCore;
+using TableTennisHistoric.DTO;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Players
 {
     public class CreateModel : PageModel
     {
-        public IPlayerService _playerService { get; }
+        private readonly IPlayerService _playerService;
 
         public CreateModel(IPlayerService playerService)
         {
             _playerService = playerService;
         }
 
-        // --- JOUEUR ---
-        [BindProperty]
-        public Player Player { get; set; } = new();
-
-        // --- PLAYERCLUB ---
-        [BindProperty(SupportsGet = true)]
-        public int SelectedPlayerId { get; set; }
+        public List<PlayerEditDTO> Players { get; set; } = new();
 
         [BindProperty]
-        public int SelectedClubId { get; set; }
+        public CreatePlayerForm CreateForm { get; set; } = new();
 
         [BindProperty]
-        public int SelectedSeasonId { get; set; }
+        public PlayerEditDTO EditForm { get; set; } = new();
 
-        [BindProperty]
-        public decimal StartPoints { get; set; }
-        [BindProperty]
-        public decimal MiddlePoints { get; set; }
-        [BindProperty]
-        public PlayerSeason.PlayerCategory? SelectedCategory { get; set; }
+        public string? SuccessMessage { get; set; }
 
-        // --- SELECT LISTS ---
-        public SelectList Players { get; set; } = null!;
-        public SelectList Clubs { get; set; } = null!;
-        public SelectList Seasons { get; set; } = null!;
-
-        // --- MESSAGES ---
-        public string? SuccessMessagePlayer { get; set; }
-        public string? SuccessMessagePlayerClub { get; set; }
+        public class CreatePlayerForm
+        {
+            public string First_name { get; set; } = "";
+            public string Last_name { get; set; } = "";
+            public string? License_number { get; set; }
+        }
 
         public async Task OnGetAsync()
         {
-            await LoadSelectListsAsync();
+            Players = await _playerService.GetAllPlayerEditDTOAsync();
         }
 
-        private async Task LoadSelectListsAsync()
+        public async Task<IActionResult> OnPostCreateAsync()
         {
-            var lists = await _playerService.GetCreatePlayerSelectListsAsync();
-            Players = lists.Players;
-            Clubs = lists.Clubs;
-            Seasons = lists.Seasons;
-        }
+            ModelState.Clear();
 
-        // ==============================
-        //   FORMULAIRE 1 : CRÉER JOUEUR
-        // ==============================
-        public async Task<IActionResult> OnPostCreatePlayerAsync()
-        {
-            if (!ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(CreateForm.First_name) || string.IsNullOrWhiteSpace(CreateForm.Last_name))
             {
-                await LoadSelectListsAsync();
+                ModelState.AddModelError(string.Empty, "Le prénom et le nom sont obligatoires.");
+                Players = await _playerService.GetAllPlayerEditDTOAsync();
                 return Page();
             }
 
-            await _playerService.CreatePlayerAsync(Player);
+            //PlayerDTO? wantedPlayer = await _playerService.GetPlayerByLicenseNumberAsync(string CreateForm.License_number);
+            if (await _playerService.GetPlayerByLicenseNumberAsync(CreateForm.License_number) != null)
+            {
+                ModelState.AddModelError(string.Empty, "Un joueur est déjà enregistré sous ce numéro de license.");
+                Players = await _playerService.GetAllPlayerEditDTOAsync();
+                return Page();
+            }
 
-            SuccessMessagePlayer = $"Le joueur {Player.First_name} {Player.Last_name.ToUpper()} a bien été créé.";
-            await LoadSelectListsAsync();
-            ModelState.Clear();
-            Player = new Player();
+            await _playerService.CreatePlayerAsync(new Models.Player
+            {
+                First_name = CreateForm.First_name,
+                Last_name = CreateForm.Last_name,
+                License_number = CreateForm.License_number
+            });
 
+            SuccessMessage = $"Le joueur {CreateForm.First_name} {CreateForm.Last_name.ToUpper()} a bien été créé.";
+            Players = await _playerService.GetAllPlayerEditDTOAsync();
             return Page();
         }
 
-        // ==============================
-        //   FORMULAIRE 2 : CRÉER PLAYERSEASON
-        // ==============================
-        public async Task<IActionResult> OnPostCreatePlayerSeasonAsync()
+        public async Task<IActionResult> OnPostUpdateAsync()
         {
-            if (SelectedPlayerId == 0 || SelectedClubId == 0 || SelectedSeasonId == 0)
+            ModelState.Clear();
+
+            if (string.IsNullOrWhiteSpace(EditForm.First_name) || string.IsNullOrWhiteSpace(EditForm.Last_name))
             {
-                ModelState.AddModelError(string.Empty, "Tous les champs sont obligatoires.");
-                await LoadSelectListsAsync();
+                ModelState.AddModelError(string.Empty, "Le prénom et le nom sont obligatoires.");
+                Players = await _playerService.GetAllPlayerEditDTOAsync();
                 return Page();
             }
 
-            var (success, error) = await _playerService.CreatePlayerSeasonAsync(new PlayerSeason
-            {
-                PlayerId = SelectedPlayerId,
-                SeasonId = SelectedSeasonId,
-                ClubId = SelectedClubId,
-                Category = SelectedCategory!.Value,
-                Points_start = StartPoints,
-                Points_middle = MiddlePoints
-            });
+            var (success, error) = await _playerService.UpdatePlayerAsync(EditForm);
 
             if (!success)
             {
                 ModelState.AddModelError(string.Empty, error!);
-                await LoadSelectListsAsync();
+                Players = await _playerService.GetAllPlayerEditDTOAsync();
                 return Page();
             }
 
-            SuccessMessagePlayerClub = "L'affiliation joueur/club/saison a été créée avec succès.";
-            SelectedPlayerId = 0;
-            SelectedClubId = 0;
-            SelectedSeasonId = 0;
-            SelectedCategory = null;
-            StartPoints = 0;
-            MiddlePoints = 0;
-            ModelState.Clear();
-            await LoadSelectListsAsync();
-
+            Players = await _playerService.GetAllPlayerEditDTOAsync();
             return Page();
         }
     }

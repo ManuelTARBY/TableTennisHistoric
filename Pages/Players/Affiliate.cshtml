@@ -1,0 +1,64 @@
+﻿@page
+@model TableTennisHistoric.Pages.Players.AffiliateModel
+@{
+    ViewData["Title"] = "Créer une affiliation";
+}
+
+<h1 class="mb-4 text-center">Créer une affiliation</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p class="mb-0">@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+@if (Model.SuccessMessage != null)
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+<div class="border rounded p-4 shadow-sm bg-light" style="max-width: 500px; margin: auto;">
+    <form method="post" asp-page-handler="Create">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Joueur</label>
+            <select asp-for="SelectedPlayerId" asp-items="Model.Players" class="form-select">
+                <option value="">-- Sélectionnez un joueur --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Catégorie</label>
+            <select asp-for="SelectedCategory"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<Models.PlayerSeason.PlayerCategory>()">
+                <option value="">-- Sélectionnez une catégorie --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Club</label>
+            <select asp-for="SelectedClubId" asp-items="Model.Clubs" class="form-select">
+                <option value="">-- Sélectionnez un club --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Saison</label>
+            <select asp-for="SelectedSeasonId" asp-items="Model.Seasons" class="form-select">
+                <option value="">-- Sélectionnez une saison --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Points début de saison</label>
+            <input asp-for="StartPoints" type="number" step="1" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Points milieu de saison</label>
+            <input asp-for="MiddlePoints" type="number" step="1" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-plus-circle"></i> Créer l'affiliation
+        </button>
+    </form>
+</div>

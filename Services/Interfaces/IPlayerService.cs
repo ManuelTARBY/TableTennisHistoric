@@ -28,5 +28,8 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<List<PlayerSeasonDTO>> GetPlayerSeasonsByPlayerIdAsync(int playerId);
         Task UpdatePlayerSeasonAsync(PlayerSeasonDTO dto);
         Task DeletePlayerSeasonAsync(int id);
+        Task<List<PlayerEditDTO>> GetAllPlayerEditDTOAsync();
+        Task<(bool Success, string? Error)> UpdatePlayerAsync(PlayerEditDTO dto);
+        Task<PlayerDTO?> GetPlayerByLicenseNumberAsync(string licensenumber);
     }
 }

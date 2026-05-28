@@ -7,7 +7,7 @@ using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class PlayerService: IPlayerService
+    public class PlayerService : IPlayerService
     {
         private readonly TableTennisHistoricDbContext _context;
         public ISeasonService _season;
@@ -21,7 +21,7 @@ namespace TableTennisHistoric.Services
         public PlayerDTO? ConvertPlayerToPlayerDTO(Player player)
         {
             if (player == null) { return null; }
-            
+
             PlayerDTO playerDTO = new PlayerDTO
             {
                 License_number = player.License_number,
@@ -47,7 +47,7 @@ namespace TableTennisHistoric.Services
             Season? currentSeason = await _season.GetCurrentSeasonAsync();
 
             if (currentSeason == null) { return null; }
-            
+
             return await GetPointsMiddleOfSeasonAsync(player, currentSeason);
         }
 
@@ -76,7 +76,7 @@ namespace TableTennisHistoric.Services
         public async Task<Club?> GetClubByPlayerIdAndSeasonIdAsync(int playerId, int seasonId)
         {
             PlayerSeason? playerClub = await _context.PlayerSeason.Where(pc => pc.PlayerId == playerId && pc.SeasonId == seasonId).FirstOrDefaultAsync();
-            
+
             if (playerClub == null) { return null; }
 
             Club? club = await _context.Club.FirstOrDefaultAsync(c => c.Id == playerClub.ClubId);
@@ -275,6 +275,48 @@ namespace TableTennisHistoric.Services
                 "Id", "Name");
 
             return (players, clubs, seasons);
+        }
+
+        public async Task<List<PlayerEditDTO>> GetAllPlayerEditDTOAsync()
+        {
+            return await _context.Player
+                .OrderBy(p => p.First_name)
+                .ThenBy(p => p.Last_name)
+                .Select(p => new PlayerEditDTO
+                {
+                    Id = p.Id,
+                    First_name = p.First_name,
+                    Last_name = p.Last_name,
+                    License_number = p.License_number
+                })
+                .ToListAsync();
+        }
+
+        public async Task<(bool Success, string? Error)> UpdatePlayerAsync(PlayerEditDTO dto)
+        {
+            var player = await _context.Player.FindAsync(dto.Id);
+            if (player == null)
+                return (false, "Joueur introuvable.");
+
+            player.First_name = dto.First_name;
+            player.Last_name = dto.Last_name.ToUpper();
+            player.License_number = dto.License_number;
+
+            await _context.SaveChangesAsync();
+            return (true, null);
+        }
+
+        public async Task<PlayerDTO?> GetPlayerByLicenseNumberAsync(string licensenumber)
+        {
+            var player = await _context.Player.FirstOrDefaultAsync(p => p.License_number == licensenumber);
+            if (player != null)
+            {
+                return ConvertPlayerToPlayerDTO(player);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
