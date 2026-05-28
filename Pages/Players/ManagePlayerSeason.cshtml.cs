@@ -18,6 +18,14 @@ namespace TableTennisHistoric.Pages.Players
         public int PlayerId { get; set; }
 
         public string PlayerFullName { get; set; } = "";
+
+        // Propriété calculée
+        public string DeOuD => string.IsNullOrEmpty(PlayerFullName)
+            ? "de "
+            : "aeiouàâäéèêëîïôöùûüæœAEIOUÀÂÄÉÈÊËÎÏÔÖÙÛÜÆŒ".Contains(PlayerFullName[0])
+                ? "d'"
+                : "de ";
+        
         public List<PlayerSeasonDTO> PlayerSeasons { get; set; } = new();
 
         [BindProperty]

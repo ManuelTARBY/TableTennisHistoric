@@ -22,7 +22,7 @@ namespace TableTennisHistoric.Pages.Players
         public Player Player { get; set; } = new();
 
         // --- PLAYERCLUB ---
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public int SelectedPlayerId { get; set; }
 
         [BindProperty]
