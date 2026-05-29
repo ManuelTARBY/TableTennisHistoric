@@ -73,5 +73,46 @@ namespace TableTennisHistoric.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(bool Success, string? Error)> UpdateClubAsync(int id, Club updated)
+        {
+            var club = await _context.Club.FindAsync(id);
+            if (club == null)
+                return (false, "Club introuvable.");
+
+            club.Name = updated.Name;
+            club.Name_abrev = updated.Name_abrev;
+            club.License_number = updated.License_number;
+            club.City = updated.City;
+            club.Department = updated.Department;
+
+            await _context.SaveChangesAsync();
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteClubAsync(int id)
+        {
+            var club = await _context.Club
+                .Include(c => c.Teams)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (club == null)
+                return (false, "Club introuvable.");
+
+            // Suppression manuelle des PlayerSeason liés
+            var playerSeasons = await _context.PlayerSeason
+                .Where(ps => ps.ClubId == id)
+                .ToListAsync();
+            _context.PlayerSeason.RemoveRange(playerSeasons);
+
+            // Suppression manuelle des équipes
+            _context.Team.RemoveRange(club.Teams);
+
+            // Suppression du club
+            _context.Club.Remove(club);
+
+            await _context.SaveChangesAsync();
+            return (true, null);
+        }
     }
 }

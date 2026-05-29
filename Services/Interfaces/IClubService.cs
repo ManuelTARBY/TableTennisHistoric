@@ -10,5 +10,7 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<ClubsPageDataDTO> GetClubsPageDataAsync(int? selectedClubId);
         Task CreateClubAsync(Club club);
         Task CreateTeamsAsync(int clubId, string baseName, int count);
+        Task<(bool Success, string? Error)> UpdateClubAsync(int id, Club updated);
+        Task<(bool Success, string? Error)> DeleteClubAsync(int id);
     }
 }

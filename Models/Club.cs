@@ -25,6 +25,6 @@ namespace TableTennisHistoric.Models
         public int Department { get; set; } = 0;
 
         public List<PlayerSeason> PlayerSeasons { get; set; } = new();
-        //public List<PlayerClub> PlayerClubs { get; set; } = new();
+        public List<Team> Teams { get; set; } = new();
     }
 }

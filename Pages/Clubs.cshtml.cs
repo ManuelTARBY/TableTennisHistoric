@@ -24,6 +24,9 @@ namespace TableTennisHistoric.Pages
         public CreateClubModel CreateClubForm { get; set; } = new();
 
         [BindProperty]
+        public ClubEditModel EditClubForm { get; set; } = new();
+
+        [BindProperty]
         public int? SelectedClubId { get; set; }
 
         [BindProperty]
@@ -33,16 +36,27 @@ namespace TableTennisHistoric.Pages
         {
             [Required, StringLength(100)]
             public string Name { get; set; }
-
             [StringLength(100)]
             public string Name_abrev { get; set; }
-
             [StringLength(10)]
             public string License_number { get; set; }
-
             [StringLength(100)]
             public string City { get; set; }
+            [Required, Range(1, 99)]
+            public int Department { get; set; }
+        }
 
+        public class ClubEditModel
+        {
+            public int Id { get; set; }
+            [Required, StringLength(100)]
+            public string Name { get; set; }
+            [StringLength(100)]
+            public string Name_abrev { get; set; }
+            [StringLength(10)]
+            public string License_number { get; set; }
+            [StringLength(100)]
+            public string City { get; set; }
             [Required, Range(1, 99)]
             public int Department { get; set; }
         }
@@ -51,10 +65,8 @@ namespace TableTennisHistoric.Pages
         {
             [Required]
             public int TeamClubId { get; set; }
-
             [Required, StringLength(100)]
             public string TeamBaseName { get; set; }
-
             [Required, Range(1, 100)]
             public int TeamsCount { get; set; }
         }
@@ -83,7 +95,37 @@ namespace TableTennisHistoric.Pages
                 Department = CreateClubForm.Department
             });
 
-            TempData["Success"] = "Club créé !";
+            TempData["Success"] = "Club créé.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostUpdateClubAsync()
+        {
+            ModelState.Clear();
+
+            if (!TryValidateModel(EditClubForm))
+            {
+                await LoadBaseDataAsync();
+                return Page();
+            }
+
+            var (success, error) = await _clubService.UpdateClubAsync(EditClubForm.Id, new Club
+            {
+                Name = EditClubForm.Name,
+                Name_abrev = EditClubForm.Name_abrev,
+                License_number = EditClubForm.License_number,
+                City = EditClubForm.City,
+                Department = EditClubForm.Department
+            });
+
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, error!);
+                await LoadBaseDataAsync();
+                return Page();
+            }
+
+            TempData["Success"] = "Club modifié.";
             return RedirectToPage();
         }
 
@@ -105,13 +147,10 @@ namespace TableTennisHistoric.Pages
             }
 
             await _clubService.CreateTeamsAsync(CreateTeamsForm.TeamClubId, CreateTeamsForm.TeamBaseName, CreateTeamsForm.TeamsCount);
-
             SelectedClubId = CreateTeamsForm.TeamClubId;
             CreateTeamsForm = new CreateTeamsModel();
-
             await LoadBaseDataAsync();
-
-            TempData["Success"] = "Équipes créées !";
+            TempData["Success"] = "Équipes créées.";
             return Page();
         }
 
@@ -121,6 +160,21 @@ namespace TableTennisHistoric.Pages
             Clubs = data.Clubs;
             ClubSelectList = data.ClubSelectList;
             SelectedClubTeams = data.SelectedClubTeams;
+        }
+
+        public async Task<IActionResult> OnPostDeleteClubAsync(int id)
+        {
+            var (success, error) = await _clubService.DeleteClubAsync(id);
+
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, error!);
+                await LoadBaseDataAsync();
+                return Page();
+            }
+
+            TempData["Success"] = "Club supprimé.";
+            return RedirectToPage();
         }
     }
 }

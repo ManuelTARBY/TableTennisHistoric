@@ -4,90 +4,115 @@
     ViewData["Title"] = "Gestion des clubs";
 }
 
-<h1 class="mb-4">Gestion des clubs</h1>
-
-<div class="row">
-    <!-- ============================= -->
-    <!--   COLONNE GAUCHE : LISTE DES CLUBS -->
-    <!-- ============================= -->
-    <div class="col-md-7">
-        <h2>Liste des clubs</h2>
-
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Numéro de licence</th>
-                    <th>Nom</th>
-                    <th>Nom abrégé</th>
-                    <th>Ville</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var club in Model.Clubs)
-                {
-                    <tr>
-                        <td>@club.License_number</td>
-                        <td>@club.Name</td>
-                        <td>@club.Name_abrev</td>
-                        <td>@club.City</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================= -->
-    <!--   COLONNE DROITE : FORMULAIRE AJOUT CLUB -->
-    <!-- ============================= -->
-    <div class="col-md-5">
-        <h2>Ajouter un club</h2>
-        <!-- FORMULAIRE AJOUT CLUB -->
-        <form method="post" asp-page-handler="CreateClub">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="mb-3">
-                <label asp-for="CreateClubForm.Name" class="form-label">Nom</label>
-                <input asp-for="CreateClubForm.Name" class="form-control" placeholder="Nom du club" maxlength="100" />
-                <span asp-validation-for="CreateClubForm.Name" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="CreateClubForm.Name_abrev" class="form-label">Nom abrégé</label>
-                <input asp-for="CreateClubForm.Name_abrev" class="form-control" placeholder="Nom abrégé du club" maxlength="100" />
-                <span asp-validation-for="CreateClubForm.Name_abrev" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="CreateClubForm.License_number" class="form-label">Numéro de licence</label>
-                <input asp-for="CreateClubForm.License_number" class="form-control" placeholder="12345" maxlength="10" />
-                <span asp-validation-for="CreateClubForm.License_number" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="CreateClubForm.City" class="form-label">Ville</label>
-                <input asp-for="CreateClubForm.City" class="form-control" placeholder="Ville" maxlength="100" />
-                <span asp-validation-for="CreateClubForm.City" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="CreateClubForm.Department" class="form-label">Département</label>
-                <input asp-for="CreateClubForm.Department" class="form-control" type="number" step="1" required />
-                <span asp-validation-for="CreateClubForm.Department" class="text-danger"></span>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Créer le club</button>
-        </form>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Gestion des clubs</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClubModal">
+        <i class="bi bi-plus-circle"></i> Créer un club
+    </button>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p class="mb-0">@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+<!-- Tableau des clubs avec modification inline -->
+<table class="table table-striped align-middle mb-5">
+    <thead class="table-light">
+        <tr>
+            <th>Licence</th>
+            <th>Nom</th>
+            <th>Nom abrégé</th>
+            <th>Ville</th>
+            <th>Département</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var club in Model.Clubs)
+        {
+            <form id="update-club-@club.Id" method="post" asp-page-handler="UpdateClub">
+                <input type="hidden" name="EditClubForm.Id" value="@club.Id" />
+            </form>
+
+            <tr>
+                <td>
+                    <input type="text"
+                           name="EditClubForm.License_number"
+                           value="@club.License_number"
+                           form="update-club-@club.Id"
+                           class="form-control form-control-sm text-center"
+                           style="width: 100px;" />
+                </td>
+                <td>
+                    <input type="text"
+                           name="EditClubForm.Name"
+                           value="@club.Name"
+                           form="update-club-@club.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="text"
+                           name="EditClubForm.Name_abrev"
+                           value="@club.Name_abrev"
+                           form="update-club-@club.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="text"
+                           name="EditClubForm.City"
+                           value="@club.City"
+                           form="update-club-@club.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="number"
+                           name="EditClubForm.Department"
+                           value="@club.Department"
+                           form="update-club-@club.Id"
+                           class="form-control form-control-sm text-center"
+                           style="width: 80px;" min="1" max="99" />
+                </td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <button type="submit"
+                                form="update-club-@club.Id"
+                                class="btn btn-sm btn-outline-warning"
+                                title="Enregistrer">
+                            <i class="bi bi-save"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                title="Supprimer"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteClubModal"
+                                data-bs-id="@club.Id"
+                                data-bs-name="@club.Name">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 <hr class="my-4" />
 
-<!-- ========================================================== -->
-<!--   SECTION BAS : FORMULAIRE CRÉATION ET LISTE DES ÉQUIPES -->
-<!-- ========================================================== -->
+<!-- Section équipes -->
 <div class="row">
     <div class="col-md-7">
         <h2>Équipes du club</h2>
-
         <form method="post" asp-page-handler="SelectClub" class="row g-3 mb-3">
             <div class="col-md-8">
                 <label class="form-label fw-bold">Sélectionner un club</label>
@@ -104,16 +129,12 @@
         {
             <table class="table table-bordered">
                 <thead class="table-light">
-                    <tr>
-                        <th>Nom de l’équipe</th>
-                    </tr>
+                    <tr><th>Nom de l'équipe</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var team in Model.SelectedClubTeams)
                     {
-                        <tr>
-                            <td>@team.Name</td>
-                        </tr>
+                        <tr><td>@team.Name</td></tr>
                     }
                 </tbody>
             </table>
@@ -126,33 +147,109 @@
 
     <div class="col-md-5">
         <h2>Ajouter des équipes</h2>
-
-        @* Affichage des erreurs générales *@
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
         <form method="post" asp-page-handler="CreateTeams">
             <div class="mb-3">
                 <label class="form-label fw-bold">Club</label>
                 <select asp-for="CreateTeamsForm.TeamClubId" class="form-select" asp-items="Model.ClubSelectList">
                     <option value="">-- Sélectionner un club --</option>
                 </select>
-                <span asp-validation-for="CreateTeamsForm.TeamClubId" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Nom de base de l’équipe</label>
+                <label class="form-label fw-bold">Nom de base de l'équipe</label>
                 <input asp-for="CreateTeamsForm.TeamBaseName" class="form-control" placeholder="Ex : ASPTT Albi" />
-                <span asp-validation-for="CreateTeamsForm.TeamBaseName" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Nombre d’équipes</label>
-                <input asp-for="CreateTeamsForm.TeamsCount" type="number" min="1" class="form-control" placeholder="Ex : 3" />
-                <span asp-validation-for="CreateTeamsForm.TeamsCount" class="text-danger"></span>
+                <label class="form-label fw-bold">Nombre d'équipes</label>
+                <input asp-for="CreateTeamsForm.TeamsCount" type="number" min="1" class="form-control" />
             </div>
             <button type="submit" class="btn btn-primary w-100">Créer les équipes</button>
         </form>
     </div>
 </div>
 
+<!-- Modale de création de club -->
+<div class="modal fade" id="createClubModal" tabindex="-1" aria-labelledby="createClubModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="createClubModalLabel">Créer un club</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="CreateClub" id="createClubForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nom</label>
+                        <input asp-for="CreateClubForm.Name" class="form-control" maxlength="100" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nom abrégé</label>
+                        <input asp-for="CreateClubForm.Name_abrev" class="form-control" maxlength="100" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Numéro de licence</label>
+                        <input asp-for="CreateClubForm.License_number"
+                               class="form-control"
+                               maxlength="10"
+                               inputmode="numeric"
+                               onkeypress="return /[0-9]/.test(event.key)"
+                               onpaste="return false" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ville</label>
+                        <input asp-for="CreateClubForm.City" class="form-control" maxlength="100" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Département</label>
+                        <input asp-for="CreateClubForm.Department" type="number" class="form-control" min="1" max="99" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="createClubForm" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Créer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de suppression de club -->
+<div class="modal fade" id="deleteClubModal" tabindex="-1" aria-labelledby="deleteClubModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteClubModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le club <strong id="modalClubName"></strong> ?</p>
+                <p class="text-muted small">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-page-handler="DeleteClub">
+                    <input type="hidden" name="id" id="modalClubId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteClubModal = document.getElementById('deleteClubModal');
+            if (deleteClubModal) {
+                deleteClubModal.addEventListener('show.bs.modal', event => {
+                    const button = event.relatedTarget;
+                    document.getElementById('modalClubId').value = button.getAttribute('data-bs-id');
+                    document.getElementById('modalClubName').textContent = button.getAttribute('data-bs-name');
+                });
+            }
+        });
+    </script>
 }
