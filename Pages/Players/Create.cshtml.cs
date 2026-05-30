@@ -63,6 +63,11 @@ namespace TableTennisHistoric.Pages.Players
             });
 
             SuccessMessage = $"Le joueur {CreateForm.First_name} {CreateForm.Last_name.ToUpper()} a bien été créé.";
+
+            // Réinitialisation des champs
+            CreateForm = new CreatePlayerForm();
+            ModelState.Clear();
+
             Players = await _playerService.GetAllPlayerEditDTOAsync();
             return Page();
         }
