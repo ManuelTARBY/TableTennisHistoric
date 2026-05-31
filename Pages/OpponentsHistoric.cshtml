@@ -22,6 +22,7 @@
 
                 <a asp-page="/Players/ManagePlayerSeason"
                    asp-route-playerId="@Model.SelectedOpponentId"
+                   asp-route-returnUrl="/OpponentsHistoric/@Model.SelectedOpponentId"
                    class="btn btn-outline-secondary"
                    title="Gérer les affiliations">
                     <i class="bi bi-pencil-square"></i>

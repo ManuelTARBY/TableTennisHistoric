@@ -21,6 +21,9 @@ namespace TableTennisHistoric.Pages.Players
         [BindProperty(SupportsGet = true)]
         public int PlayerId { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
+
         public string PlayerFullName { get; set; } = "";
 
         // Propriété calculée
@@ -64,13 +67,13 @@ namespace TableTennisHistoric.Pages.Players
             }
 
             await _playerService.UpdatePlayerSeasonAsync(EditForm);
-            return RedirectToPage(new { PlayerId });
+            return RedirectToPage(new { PlayerId, ReturnUrl });
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             await _playerService.DeletePlayerSeasonAsync(id);
-            return RedirectToPage(new { PlayerId });
+            return RedirectToPage(new { PlayerId, ReturnUrl });
         }
     }
 }

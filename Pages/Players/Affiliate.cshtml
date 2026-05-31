@@ -25,9 +25,20 @@
     <form method="post" asp-page-handler="Create">
         <div class="mb-3">
             <label class="form-label fw-bold">Joueur</label>
-            <select asp-for="SelectedPlayerId" asp-items="Model.Players" class="form-select">
-                <option value="">-- Sélectionnez un joueur --</option>
-            </select>
+            <div class="d-flex gap-2 align-items-center">
+                <select asp-for="SelectedPlayerId"
+                        asp-items="Model.Players"
+                        class="form-select"
+                        id="playerSelect">
+                    <option value="">-- Sélectionnez un joueur --</option>
+                </select>
+                <a id="managePlayerSeasonBtn"
+                   href="#"
+                   class="btn btn-outline-secondary d-none"
+                   title="Gérer les affiliations">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+            </div>
         </div>
         <div class="mb-3">
             <label class="form-label fw-bold">Catégorie</label>
@@ -62,3 +73,29 @@
         </button>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        const playerSelect = document.getElementById('playerSelect');
+        const manageBtn = document.getElementById('managePlayerSeasonBtn');
+        const baseUrl = '/Players/ManagePlayerSeason/';
+        const returnUrl = encodeURIComponent('/Players/Affiliate');
+
+        function updateBtn() {
+            const playerId = playerSelect.value;
+            if (playerId && playerId !== '') {
+                const returnUrl = encodeURIComponent('/Players/Affiliate?SelectedPlayerId=' + playerId);
+                manageBtn.href = `${baseUrl}${playerId}?returnUrl=${returnUrl}`;
+                manageBtn.classList.remove('d-none');
+            } else {
+                manageBtn.classList.add('d-none');
+            }
+        }
+
+        // Au chargement si un joueur est déjà présélectionné
+        updateBtn();
+
+        // À chaque changement de sélection
+        playerSelect.addEventListener('change', updateBtn);
+    </script>
+}

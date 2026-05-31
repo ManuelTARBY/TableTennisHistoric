@@ -114,26 +114,6 @@ else
                             </button>
                         </div>
                     </td>
-                    @* <td class="text-center">
-                        <div class="btn-group">
-                            <button type="submit"
-                                    form="update-form-@ps.Id"
-                                    class="btn btn-sm btn-outline-warning"
-                                    title="Enregistrer">
-                                <i class="bi bi-save"></i>
-                            </button>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    title="Supprimer"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-bs-id="@ps.Id"
-                                    data-bs-season="@ps.SeasonName.ToLower()"
-                                    data-bs-player="@Model.PlayerFullName">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td> *@
                 </tr>
             }
         </tbody>
@@ -169,8 +149,7 @@ else
 </div>
 
 <div class="mt-4">
-    <a asp-page="/OpponentsHistoric"
-       asp-route-SelectedOpponentId="@Model.PlayerId"
+    <a href="@(Model.ReturnUrl ?? "/OpponentsHistoric")"
        class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Retour
     </a>
