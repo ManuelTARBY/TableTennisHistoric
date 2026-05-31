@@ -220,6 +220,7 @@ namespace TableTennisHistoric.Services
             playerSeason.Points_start = dto.Points_start;
             playerSeason.Points_middle = dto.Points_middle;
             playerSeason.ClubId = dto.ClubId;
+            playerSeason.Category = dto.Category;
 
             await _context.SaveChangesAsync();
         }
@@ -252,7 +253,8 @@ namespace TableTennisHistoric.Services
                     Points_middle = ps.Points_middle,
                     PlayerId = ps.PlayerId,
                     SeasonId = ps.SeasonId,
-                    ClubId = ps.ClubId
+                    ClubId = ps.ClubId,
+                    Category = ps.Category
                 })
                 .ToListAsync();
         }
