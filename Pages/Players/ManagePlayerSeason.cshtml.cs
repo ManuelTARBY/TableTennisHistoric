@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using TableTennisHistoric.DTO;
+using TableTennisHistoric.Services;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Players
@@ -8,10 +10,12 @@ namespace TableTennisHistoric.Pages.Players
     public class ManagePlayerSeasonModel : PageModel
     {
         private readonly IPlayerService _playerService;
+        private readonly IClubService _clubService;
 
-        public ManagePlayerSeasonModel(IPlayerService playerService)
+        public ManagePlayerSeasonModel(IPlayerService playerService, IClubService clubService)
         {
             _playerService = playerService;
+            _clubService = clubService;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -27,6 +31,7 @@ namespace TableTennisHistoric.Pages.Players
                 : "de ";
         
         public List<PlayerSeasonDTO> PlayerSeasons { get; set; } = new();
+        public SelectList Clubs { get; set; } = null!;
 
         [BindProperty]
         public PlayerSeasonDTO EditForm { get; set; } = new();
@@ -38,6 +43,8 @@ namespace TableTennisHistoric.Pages.Players
 
             PlayerSeasons = await _playerService.GetPlayerSeasonsByPlayerIdAsync(PlayerId);
 
+            Clubs = await _clubService.GetClubsSelectListAsync();
+
             if (PlayerSeasons.Any())
                 PlayerFullName = PlayerSeasons.First().PlayerFullName;
 
@@ -46,9 +53,13 @@ namespace TableTennisHistoric.Pages.Players
 
         public async Task<IActionResult> OnPostUpdateAsync()
         {
+
+            var clubId = EditForm.ClubId;
+
             if (!ModelState.IsValid)
             {
                 PlayerSeasons = await _playerService.GetPlayerSeasonsByPlayerIdAsync(PlayerId);
+                Clubs = await _clubService.GetClubsSelectListAsync();
                 return Page();
             }
 

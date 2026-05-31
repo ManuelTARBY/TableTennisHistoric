@@ -46,13 +46,26 @@ else
                     <input type="hidden" name="EditForm.Id" value="@ps.Id" />
                     <input type="hidden" name="EditForm.PlayerId" value="@ps.PlayerId" />
                     <input type="hidden" name="EditForm.SeasonId" value="@ps.SeasonId" />
-                    <input type="hidden" name="EditForm.ClubId" value="@ps.ClubId" />
+                    @* <input type="hidden" name="EditForm.ClubId" value="@ps.ClubId" /> *@
                     <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
                 </form>
 
                 <tr>
                     <td>@ps.SeasonName</td>
-                    <td>@ps.ClubName</td>
+                    <td>
+                        <select name="EditForm.ClubId"
+                                form="update-form-@ps.Id"
+                                class="form-select form-select-sm">
+                            @foreach (var club in Model.Clubs)
+                            {
+                                <option value="@club.Value"
+                                        selected="@(club.Value == ps.ClubId.ToString() ? "selected" : null)">
+                                    @club.Text
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    @* <td>@ps.ClubName</td> *@
                     <td>
                         <input type="number"
                                name="EditForm.Points_start"

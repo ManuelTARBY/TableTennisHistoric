@@ -9,3 +9,5 @@ obj/
 
 # Variables d'environnement
 *.env
+
+**/PublishProfiles/*.pubxml.user

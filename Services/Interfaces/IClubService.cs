@@ -1,4 +1,5 @@
-﻿using TableTennisHistoric.DTO;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
 
 namespace TableTennisHistoric.Services.Interfaces
@@ -12,5 +13,6 @@ namespace TableTennisHistoric.Services.Interfaces
         Task CreateTeamsAsync(int clubId, string baseName, int count);
         Task<(bool Success, string? Error)> UpdateClubAsync(int id, Club updated);
         Task<(bool Success, string? Error)> DeleteClubAsync(int id);
+        Task<SelectList> GetClubsSelectListAsync();
     }
 }

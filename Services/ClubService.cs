@@ -114,5 +114,11 @@ namespace TableTennisHistoric.Services
             await _context.SaveChangesAsync();
             return (true, null);
         }
+
+        public async Task<SelectList> GetClubsSelectListAsync()
+        {
+            var clubs = await _context.Club.OrderBy(c => c.Name).ToListAsync();
+            return new SelectList(clubs, "Id", "Name");
+        }
     }
 }
