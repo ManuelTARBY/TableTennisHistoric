@@ -90,8 +90,12 @@ body {
     padding: 5px;
     transition: all 0.2s ease;
 }
-/* Empêche le tableau de prendre toute la largeur si peu de sets */
-/*.sets-table {
-    width: auto !important;
-    margin-bottom: 1rem;
-}*/
+
+.btn.btn-toggle-collapse .icon-collapse {
+    display: inline-block;
+    transition: transform 0.2s ease-in-out !important;
+}
+
+.btn.btn-toggle-collapse[aria-expanded="false"] .icon-collapse {
+    transform: rotate(-90deg) !important;
+}

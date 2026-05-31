@@ -183,6 +183,9 @@
         int theYear = Model.SeasonDTO != null ? (matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year : Model.SeasonDTO.End_date.Year) : 3000;
         @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today)
         {
+            var year = matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year.ToString() : Model.SeasonDTO.End_date.Year.ToString();
+            var collapseId = $"collapse-{matchDTO.Key}-{year}";
+
             <thead class="table-light">
                 <tr>
                     <th colspan="12" class="fw-bold fs-4 text-start table-primary">
@@ -191,33 +194,44 @@
                             .DateTimeFormat
                             .GetMonthName(matchDTO.Key);
                             monthName = char.ToUpper(monthName[0]) + monthName.Substring(1);
-                            var year = matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year.ToString() : Model.SeasonDTO.End_date.Year.ToString();
                             var pointsAtMatch = Model.MonthliesPointsOrdered[new DateOnly(int.Parse(year), matchDTO.Key, 1)];
                         }
-                        @monthName @year
-                        (@matchDTO.Value.Count match@(matchDTO.Value.Count > 1 ? "s" : "")) - @(pointsAtMatch?.ToString("0.00") ?? "-") points
 
+                        <button class="btn btn-sm btn-link text-dark p-0 me-2 btn-toggle-collapse"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#@collapseId"
+                                aria-expanded="true"
+                                aria-controls="@collapseId">
+                            <i class="bi bi-chevron-down fs-4 align-middle icon-collapse d-inline-block"></i>
+                        </button>
+
+                        <span class="align-middle">
+                            @monthName @year
+                            (@matchDTO.Value.Count match@(matchDTO.Value.Count > 1 ? "s" : "")) - @(pointsAtMatch?.ToString("0.00") ?? "-") points
+                        </span>
                     </th>
                 </tr>
+            </thead>
+            <tbody id="@collapseId" class="collapse show">
                 @if (matchDTO.Value.Count > 0)
                 {
-                    <tr>
-                        <th>Date</th>
-                        <th>Compétition</th>
-                        <th>Stade</th>
-                        <th class="text-center">Coeff.</th>
-                        <th>Adversaire</th>
-                        <th>Club</th>
-                        <th>Points adversaire</th>
-                        <th>Ecart</th>
-                        <th>Résultat</th>
-                        <th>Détail</th>
-                        <th>Gain</th>
-                        <th>Action</th>
+                    <tr class="table-light fw-bold">
+                        <td>Date</td>
+                        <td>Compétition</td>
+                        <td>Stade</td>
+                        <td class="text-center">Coeff.</td>
+                        <td>Adversaire</td>
+                        <td>Club</td>
+                        <td>Points adversaire</td>
+                        <td>Ecart</td>
+                        <td>Résultat</td>
+                        <td>Détail</td>
+                        <td>Gain</td>
+                        <td>Action</td>
                     </tr>
                 }
-            </thead>
-            <tbody>
+
                 @{
                     DateOnly matchDate = matchDTO.Value.Count > 0 ? matchDTO.Value[0].Date_of_match : new DateOnly(2001, 1, 1);
                 }
@@ -241,15 +255,12 @@
                                target="_blank"
                                class="text-decoration-none text-primary fw-semibold opponent-link"
                                title="Voir l'historique des matchs contre @match.Opponent_full_name">
-
                                 @match.Opponent_full_name
                                 <i class="bi bi-box-arrow-up-right ms-1 small opacity-75"></i>
                             </a>
                             @if (!string.IsNullOrEmpty(match.Comment))
                             {
-                                <i class="bi bi-chat-square-text-fill text-warning"
-                                   data-bs-toggle="tooltip">
-                                </i>
+                                <i class="bi bi-chat-square-text-fill text-warning" data-bs-toggle="tooltip"></i>
                             }
                         </td>
                         <td>@match.Opponent_club</td>
@@ -276,23 +287,19 @@
                             {
                                 <table class="sets-table">
                                     <tr>
-                                        @{
-                                            foreach (var set in match.MatchSets)
-                                            {
-                                                <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
-                                                    @set.Player1Score
-                                                </td>
-                                            }
+                                        @foreach (var set in match.MatchSets)
+                                        {
+                                            <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                                @set.Player1Score
+                                            </td>
                                         }
                                     </tr>
                                     <tr>
-                                        @{
-                                            foreach (var set in match.MatchSets)
-                                            {
-                                                <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
-                                                    @set.Player2Score
-                                                </td>
-                                            }
+                                        @foreach (var set in match.MatchSets)
+                                        {
+                                            <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                                @set.Player2Score
+                                            </td>
                                         }
                                     </tr>
                                 </table>
@@ -301,19 +308,10 @@
                         <td>@(match.Gain > 0 ? "+" : "")@match.Gain.ToString("0.###")</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
-                                <a asp-page="/Matches/UpdateMatch"
-                                   asp-route-id="@match.Id"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="Modifier le match">
+                                <a asp-page="/Matches/UpdateMatch" asp-route-id="@match.Id" class="btn btn-sm btn-outline-warning" title="Modifier le match">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="Supprimer le match"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-bs-matchid="@match.Id"
-                                        data-bs-opponent="@match.Opponent_full_name">
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer le match" data-bs-toggle="modal" data-bs-target="#deleteModal" data-bs-matchid="@match.Id" data-bs-opponent="@match.Opponent_full_name">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
