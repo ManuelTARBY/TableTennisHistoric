@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TableTennisHistoric.DTO
 {
     public class SeasonDTO
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public DateOnly Start_date { get; set; }
         public DateOnly End_date { get; set; }
         public DateOnly Phase1_End_date { get; set; }

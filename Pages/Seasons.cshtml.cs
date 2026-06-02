@@ -1,18 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TableTennisHistoric.DTO;
-using TableTennisHistoric.Services;
 using TableTennisHistoric.Services.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static TableTennisHistoric.Pages.Players.CreateModel;
 
 namespace TableTennisHistoric.Pages
 {
-    public class UpdateSeasonModel : PageModel
+    public class SeasonsModel : PageModel
     {
         private readonly ISeasonService _seasonService;
 
-        public UpdateSeasonModel(ISeasonService seasonService)
+        public SeasonsModel(ISeasonService seasonService)
         {
             _seasonService = seasonService;
         }
@@ -20,17 +17,10 @@ namespace TableTennisHistoric.Pages
         public List<SeasonEditDTO> Seasons { get; set; } = new();
 
         [BindProperty]
-        public CreateSeasonForm CreateForm { get; set; } = new();
+        public SeasonDTO CreateForm { get; set; } = new();
+
         [TempData]
         public string? SuccessMessage { get; set; }
-        public class CreateSeasonForm
-        {
-            public DateOnly Start_Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-            public DateOnly End_Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-            public DateOnly Phase1_End_Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-            public decimal? p1_drift { get; set; }
-            public decimal? p2_drift { get; set; }
-        }
 
         [BindProperty]
         public SeasonEditDTO EditForm { get; set; } = new();
@@ -38,10 +28,19 @@ namespace TableTennisHistoric.Pages
         public async Task OnGetAsync()
         {
             Seasons = await _seasonService.GetAllSeasonEditDTOAsync();
+            CreateForm = new SeasonDTO
+            {
+                Start_date = DateOnly.FromDateTime(DateTime.Now),
+                End_date = DateOnly.FromDateTime(DateTime.Now),
+                Phase1_End_date = DateOnly.FromDateTime(DateTime.Now)
+            };
         }
 
         public async Task<IActionResult> OnPostUpdateAsync()
         {
+
+            ModelState.Remove("CreateForm");
+
             if (!ModelState.IsValid)
             {
                 Seasons = await _seasonService.GetAllSeasonEditDTOAsync();
@@ -62,25 +61,18 @@ namespace TableTennisHistoric.Pages
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            // On ignore le formulaire du tableau
+            ModelState.Remove("EditForm");
 
+            // On vérifie si les données de création sont valides
             if (!ModelState.IsValid)
             {
                 Seasons = await _seasonService.GetAllSeasonEditDTOAsync();
                 return Page();
             }
 
-            ModelState.Clear();
-
-            var(success, error) =  await _seasonService.CreateSeasonAsync(new Models.Season
-                {
-                    Name = $"Saison {CreateForm.Start_Date:yyyy}-{CreateForm.End_Date:yyyy}",
-                    Start_date = CreateForm.Start_Date,
-                    End_date = CreateForm.End_Date,
-                    Phase1_End_date = CreateForm.Phase1_End_Date,
-                    p1_drift = CreateForm.p1_drift,
-                    p2_drift = CreateForm.p2_drift
-                });
-
+            // Appel au service avec votre DTO validé
+            var (success, error) = await _seasonService.CreateSeasonAsync(CreateForm);
 
             if (!success)
             {
@@ -89,12 +81,10 @@ namespace TableTennisHistoric.Pages
                 return Page();
             }
 
-            // Réinitialisation des champs
-            SuccessMessage = $"La saison {CreateForm.Start_Date:yyyy}-{CreateForm.End_Date:yyyy} a bien été créée.";
-            CreateForm = new CreateSeasonForm();
-            ModelState.Clear();
+            // Préparation du message de succès
+            SuccessMessage = $"La saison {CreateForm.Start_date:yyyy}-{CreateForm.End_date:yyyy} a bien été créée.";
 
-            Seasons = await _seasonService.GetAllSeasonEditDTOAsync();
+            // Redirection (qui va reconstruire proprement un modèle tout neuf)
             return RedirectToPage();
         }
     }

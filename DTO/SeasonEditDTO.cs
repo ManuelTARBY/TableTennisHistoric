@@ -5,7 +5,7 @@ namespace TableTennisHistoric.DTO
     public class SeasonEditDTO
     {
         public int Id { get; set; }
-        public string Name { get; set; } = "";
+        public string? Name { get; set; }
 
         [Required]
         public DateOnly Start_date { get; set; }
