@@ -47,7 +47,6 @@ namespace TableTennisHistoric.Pages.Players
                 return Page();
             }
 
-            //PlayerDTO? wantedPlayer = await _playerService.GetPlayerByLicenseNumberAsync(string CreateForm.License_number);
             if (await _playerService.GetPlayerByLicenseNumberAsync(CreateForm.License_number) != null)
             {
                 ModelState.AddModelError(string.Empty, "Un joueur est déjà enregistré sous ce numéro de license.");

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Humanizer;
+using Microsoft.EntityFrameworkCore;
 using TableTennisHistoric.Datas;
 using TableTennisHistoric.DTO;
 using TableTennisHistoric.Models;
@@ -6,7 +7,7 @@ using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Services
 {
-    public class SeasonService: ISeasonService
+    public class SeasonService : ISeasonService
     {
         private readonly TableTennisHistoricDbContext _context;
 
@@ -77,12 +78,44 @@ namespace TableTennisHistoric.Services
             if (season == null)
                 return (false, "Saison introuvable.");
 
+            if (dto.Start_date >= dto.End_date)
+                return (false, "La date de début doit être antérieure à la date de fin de saison.");
+
+            if (dto.Phase1_End_date <= dto.Start_date || dto.Phase1_End_date >= dto.End_date)
+                return (false, "La date de fin de la phase 1 doit être comprise entre la date de début et la date de fin de la saison.");
+
+            if (dto.p1_drift < 0 || dto.p2_drift < 0)
+                return (false, "Les dérives ne peuvent pas être négatives.");
+
+            if (dto.End_date <= dto.Start_date)
+                return (false, "La date de fin doit être postérieure à la date de début de saison.");
+
             season.Start_date = dto.Start_date;
             season.End_date = dto.End_date;
             season.Phase1_End_date = dto.Phase1_End_date;
             season.p1_drift = dto.p1_drift ?? 0;
             season.p2_drift = dto.p2_drift ?? 0;
 
+            await _context.SaveChangesAsync();
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? Error)> CreateSeasonAsync(Season season)
+        {
+
+            if (season.Start_date >= season.End_date)
+                return (false, "La date de début doit être antérieure à la date de fin de saison.");
+
+            if (season.Phase1_End_date <= season.Start_date || season.Phase1_End_date >= season.End_date)
+                return (false, "La date de fin de la phase 1 doit être comprise entre la date de début et la date de fin de la saison.");
+
+            if (season.p1_drift < 0 || season.p2_drift < 0)
+                return (false, "Les dérives ne peuvent pas être négatives.");
+
+            if (season.End_date <= season.Start_date)
+                return (false, "La date de fin doit être postérieure à la date de début de saison.");
+
+            _context.Season.Add(season);
             await _context.SaveChangesAsync();
             return (true, null);
         }

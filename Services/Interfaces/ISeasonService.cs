@@ -12,5 +12,6 @@ namespace TableTennisHistoric.Services.Interfaces
         SeasonDTO ConvertSeasonToSeasonDTO(Season season);
         Task<List<SeasonEditDTO>> GetAllSeasonEditDTOAsync();
         Task<(bool Success, string? Error)> UpdateSeasonAsync(SeasonEditDTO dto);
+        Task<(bool Success, string? Error)> CreateSeasonAsync(Season season);
     }
 }
