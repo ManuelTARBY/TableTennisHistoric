@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TableTennisHistoric.Datas;
 
@@ -11,9 +12,11 @@ using TableTennisHistoric.Datas;
 namespace TableTennisHistoric.Migrations
 {
     [DbContext(typeof(TableTennisHistoricDbContext))]
-    partial class TableTennisHistoricDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611063252_UniqueSeasonCompetition")]
+    partial class UniqueSeasonCompetition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,7 +58,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("SeasonId");
 
-                    b.ToTable("Championship", (string)null);
+                    b.ToTable("Championship");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.ChampionshipFormat", b =>
@@ -82,7 +85,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChampionshipFormat", (string)null);
+                    b.ToTable("ChampionshipFormat");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.ChampionshipMatch", b =>
@@ -119,7 +122,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("Home_teamId");
 
-                    b.ToTable("ChampionshipMatch", (string)null);
+                    b.ToTable("ChampionshipMatch");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.ChampionshipTeam", b =>
@@ -145,7 +148,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("ChampionshipTeam", (string)null);
+                    b.ToTable("ChampionshipTeam");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Club", b =>
@@ -181,7 +184,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Club", (string)null);
+                    b.ToTable("Club");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Competition", b =>
@@ -199,7 +202,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Competition", (string)null);
+                    b.ToTable("Competition");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.CompetitionCoefficient", b =>
@@ -227,7 +230,7 @@ namespace TableTennisHistoric.Migrations
                     b.HasIndex("SeasonId", "CompetitionId")
                         .IsUnique();
 
-                    b.ToTable("CompetitionCoefficient", (string)null);
+                    b.ToTable("CompetitionCoefficient");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.MatchSet", b =>
@@ -254,7 +257,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("MatchId");
 
-                    b.ToTable("MatchSet", (string)null);
+                    b.ToTable("MatchSet");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Player", b =>
@@ -281,7 +284,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Player", (string)null);
+                    b.ToTable("Player");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.PlayerSeason", b =>
@@ -318,7 +321,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("SeasonId");
 
-                    b.ToTable("PlayerSeason", (string)null);
+                    b.ToTable("PlayerSeason");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Season", b =>
@@ -350,7 +353,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Season", (string)null);
+                    b.ToTable("Season");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Stage", b =>
@@ -368,7 +371,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stage", (string)null);
+                    b.ToTable("Stage");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.TableTennisMatch", b =>
@@ -412,7 +415,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("StageId");
 
-                    b.ToTable("TableTennisMatch", (string)null);
+                    b.ToTable("TableTennisMatch");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Team", b =>
@@ -434,7 +437,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.HasIndex("ClubId");
 
-                    b.ToTable("Team", (string)null);
+                    b.ToTable("Team");
                 });
 
             modelBuilder.Entity("TableTennisHistoric.Models.Championship", b =>

@@ -28,6 +28,8 @@ namespace TableTennisHistoric.Pages
 
         [BindProperty(SupportsGet = false)]
         public CompetitionCoefficient NewCompetitionCoefficient { get; set; } = new();
+        [BindProperty]
+        public CoefficientCompetitionEditDTO EditCoefficientForm { get; set; } = new();
 
         [TempData]
         public string? StatusMessage { get; set; }
@@ -87,6 +89,38 @@ namespace TableTennisHistoric.Pages
             }
 
             StatusMessage = "Le coefficient a été attribué avec succès.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostUpdateCoefficientAsync()
+        {
+            ModelState.Clear(); // ← supprime TOUTES les erreurs de validation
+
+            // Revalide uniquement EditCoefficientForm
+            if (EditCoefficientForm.Id <= 0)
+            {
+                ModelState.AddModelError(string.Empty, "Identifiant du coefficient invalide.");
+                await LoadSelectListsAsync();
+                return Page();
+            }
+
+            if (EditCoefficientForm.Coefficient <= 0)
+            {
+                ModelState.AddModelError(string.Empty, "Le coefficient doit être supérieur à 0.");
+                await LoadSelectListsAsync();
+                return Page();
+            }
+
+            var (success, error) = await _competitionService.UpdateCoefficientCompetitionAsync(EditCoefficientForm);
+
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, error!);
+                await LoadSelectListsAsync();
+                return Page();
+            }
+
+            StatusMessage = "Coefficient modifié !";
             return RedirectToPage();
         }
 

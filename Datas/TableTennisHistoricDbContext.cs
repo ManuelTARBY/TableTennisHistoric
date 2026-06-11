@@ -34,6 +34,10 @@ namespace TableTennisHistoric.Datas
                 .Property(p => p.Category)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<CompetitionCoefficient>()
+                .HasIndex(cc => new { cc.SeasonId, cc.CompetitionId })
+                .IsUnique();
+
             // Configurations spécifiques
             modelBuilder.Entity<TableTennisMatch>()
                 .Property(m => m.Result)

@@ -48,19 +48,39 @@
     <!-- Liste des compétitioncoefficient -->
     <div class="col-md-7">
         <h2>Liste des compétitions de la saison en cours avec leur coefficient</h2>
-        <table class="table table-striped">
+        <table class="table table-striped align-middle">
             <thead>
                 <tr>
                     <th>Nom</th>
                     <th>Coefficient</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var cc in Model.CompetitionWithCoefficient)
                 {
+                    <form id="update-cc-@cc.Id" method="post" asp-page-handler="UpdateCoefficient">
+                        <input type="hidden" name="EditCoefficientForm.Id" value="@cc.Id" />
+                    </form>
+
                     <tr>
                         <td>@cc.CompetitionName</td>
-                        <td>@cc.CompetitionCoefficient.ToString("0.##")</td>
+                        <td>
+                            <input type="number"
+                                   name="EditCoefficientForm.Coefficient"
+                                   value="@cc.CompetitionCoefficient.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                   form="update-cc-@cc.Id"
+                                   class="form-control form-control-sm text-center"
+                                   style="width: 90px;" step="0.01" />
+                        </td>
+                        <td class="text-center">
+                            <button type="submit"
+                                    form="update-cc-@cc.Id"
+                                    class="btn btn-sm btn-outline-warning"
+                                    title="Enregistrer">
+                                <i class="bi bi-save"></i>
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>

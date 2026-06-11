@@ -16,5 +16,6 @@ namespace TableTennisHistoric.Services.Interfaces
         Task<CompetitionsPageDataDTO> GetCompetitionsPageDataAsync();
         Task<(bool Success, string? Error)> CreateCompetitionAsync(Competition competition);
         Task<(bool Success, string? Error)> CreateCompetitionCoefficientAsync(CompetitionCoefficient competitionCoefficient);
+        Task<(bool Success, string? Error)> UpdateCoefficientCompetitionAsync(CoefficientCompetitionEditDTO dto);
     }
 }

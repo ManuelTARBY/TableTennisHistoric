@@ -60,6 +60,7 @@ namespace TableTennisHistoric.Services
                 .Where(cc => cc.SeasonId == seasonId)
                 .Select(cc => new SeasonCompetitionDTO
                 {
+                    Id = cc.Id,
                     CompetitionName = cc.Competition.Name,
                     CompetitionCoefficient = cc.Coefficient
                 })
@@ -132,6 +133,13 @@ namespace TableTennisHistoric.Services
 
         public async Task<(bool Success, string? Error)> CreateCompetitionCoefficientAsync(CompetitionCoefficient competitionCoefficient)
         {
+            var exists = await _context.CompetitionCoefficient
+                .AnyAsync(cc => cc.SeasonId == competitionCoefficient.SeasonId
+                             && cc.CompetitionId == competitionCoefficient.CompetitionId);
+
+            if (exists)
+                return (false, "Cette compétition est déjà associée à cette saison.");
+
             try
             {
                 _context.CompetitionCoefficient.Add(competitionCoefficient);
@@ -142,6 +150,17 @@ namespace TableTennisHistoric.Services
             {
                 return (false, "Erreur lors de la sauvegarde : " + ex.Message);
             }
+        }
+
+        public async Task<(bool Success, string? Error)> UpdateCoefficientCompetitionAsync(CoefficientCompetitionEditDTO dto)
+        {
+            var cc = await _context.CompetitionCoefficient.FindAsync(dto.Id);
+            if (cc == null)
+                return (false, "Coefficient introuvable.");
+
+            cc.Coefficient = dto.Coefficient;
+            await _context.SaveChangesAsync();
+            return (true, null);
         }
     }
 }
