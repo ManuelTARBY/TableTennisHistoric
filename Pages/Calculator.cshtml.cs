@@ -70,7 +70,7 @@ namespace TableTennisHistoric.Pages
                 Input.OpponentPoints,
                 Input.Coefficient,
                 Input.Result == MatchResult.Victory
-            ), 2);
+            ), 3);
         }
     }
 }
