@@ -7,6 +7,7 @@ namespace TableTennisHistoric.Services.Interfaces
     public interface IPlayerService
     {
         PlayerDTO? ConvertPlayerToPlayerDTO(Player player);
+        Task<(bool Success, string? Error, int? PlayerId)> CreatePlayerWithAffiliationAsync(Player player, PlayerSeason playerSeason);
         Task<decimal?> GetPointsBeginningOfCurrentSeasonAsync(Player player);
         Task<decimal?> GetPointsMiddleOfCurrentSeasonAsync(Player player);
         Task<decimal?> GetPointsBeginningOfSeasonAsync(Player player, Season season);

@@ -18,6 +18,41 @@ namespace TableTennisHistoric.Services
             _season = season;
         }
 
+        //
+        public async Task<(bool Success, string? Error, int? PlayerId)> CreatePlayerWithAffiliationAsync(Player player, PlayerSeason playerSeason)
+        {
+            // Vérifie si le joueur existe déjà
+            var existingPlayer = await _context.Player
+                .FirstOrDefaultAsync(p =>
+                    p.First_name.ToLower() == player.First_name.ToLower() &&
+                    p.Last_name.ToLower() == player.Last_name.ToLower());
+
+            if (existingPlayer == null)
+            {
+                // Crée le joueur
+                player.Last_name = player.Last_name.ToUpper();
+                _context.Player.Add(player);
+                await _context.SaveChangesAsync();
+                existingPlayer = player;
+            }
+
+            // Vérifie si l'affiliation existe déjà
+            var existingAffiliation = await _context.PlayerSeason
+                .AnyAsync(ps => ps.PlayerId == existingPlayer.Id && ps.SeasonId == playerSeason.SeasonId);
+
+            if (existingAffiliation)
+                return (false, $"Une affiliation existe déjà pour {existingPlayer.First_name} {existingPlayer.Last_name} sur cette saison.", existingPlayer.Id);
+
+            // Crée l'affiliation
+            playerSeason.PlayerId = existingPlayer.Id;
+            _context.PlayerSeason.Add(playerSeason);
+            await _context.SaveChangesAsync();
+
+            return (true, null, existingPlayer.Id);
+        }
+
+        //
+
         public PlayerDTO? ConvertPlayerToPlayerDTO(Player player)
         {
             if (player == null) { return null; }

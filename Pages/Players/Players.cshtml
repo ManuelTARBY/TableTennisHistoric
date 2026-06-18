@@ -1,29 +1,143 @@
 ﻿@page
-@model TableTennisHistoric.Pages.PlayersModel
+@model TableTennisHistoric.Pages.Players.PlayersModel
 @{
-    ViewData["Title"] = "Liste des clubs";
+    ViewData["Title"] = "Gestion des joueurs";
 }
 
-<h1>@ViewData["Title"]</h1>
+<h1 class="mb-4 text-center">Gestion des joueurs</h1>
 
-<table class="table table-striped">
-    <thead>
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p class="mb-0">@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+@if (Model.SuccessMessage != null)
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+<!-- Formulaire de création avec affiliation -->
+<div class="border rounded p-4 shadow-sm bg-light mb-4">
+    <h4 class="mb-3 text-primary">Créer un joueur et son affiliation</h4>
+    <form method="post" asp-page-handler="Create">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Prénom</label>
+                <input asp-for="Form.First_name" class="form-control" maxlength="50" />
+                <span asp-validation-for="Form.First_name" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Nom</label>
+                <input asp-for="Form.Last_name" class="form-control"
+                       style="text-transform: uppercase;" maxlength="50" />
+                <span asp-validation-for="Form.Last_name" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Numéro de licence</label>
+                <input asp-for="Form.License_number" class="form-control"
+                       inputmode="numeric"
+                       onkeypress="return /[0-9]/.test(event.key)"
+                       onpaste="return false" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Saison</label>
+                <select asp-for="Form.SeasonId" asp-items="Model.Seasons" class="form-select">
+                    <option value="">-- Sélectionnez une saison --</option>
+                </select>
+                <span asp-validation-for="Form.SeasonId" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Club</label>
+                <select asp-for="Form.ClubId" asp-items="Model.Clubs" class="form-select">
+                    <option value="">-- Sélectionnez un club --</option>
+                </select>
+                <span asp-validation-for="Form.ClubId" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Catégorie</label>
+                <select asp-for="Form.Category"
+                        class="form-select"
+                        asp-items="Html.GetEnumSelectList<Models.PlayerSeason.PlayerCategory>()">
+                    <option value="">-- Sélectionnez une catégorie --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Points début de saison</label>
+                <input asp-for="Form.Points_start" type="number" step="1" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Points milieu de saison</label>
+                <input asp-for="Form.Points_middle" type="number" step="1" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-circle"></i> Créer
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tableau de modification -->
+<table class="table table-striped align-middle">
+    <thead class="table-light">
         <tr>
             <th>Prénom</th>
             <th>Nom</th>
-            <th>Numéro de licence</th>
-            <th>Club</th>
+            <th>Licence</th>
+            <th class="text-center">Action</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var player in Model.Players)
+        @foreach (var p in Model.Players)
         {
+            <form id="update-form-@p.Id" method="post" asp-page-handler="Update">
+                <input type="hidden" name="EditForm.Id" value="@p.Id" />
+            </form>
+
             <tr>
-                <td>@player.Player.First_name</td>
-                <td>@player.Player.Last_name</td>
-                <td>@player.Player.License_number</td>
-                <td>@player.Club.Name</td>
+                <td>
+                    <input type="text"
+                           name="EditForm.First_name"
+                           value="@p.First_name"
+                           form="update-form-@p.Id"
+                           class="form-control form-control-sm"
+                           maxlength="50" />
+                </td>
+                <td>
+                    <input type="text"
+                           name="EditForm.Last_name"
+                           value="@p.Last_name"
+                           form="update-form-@p.Id"
+                           class="form-control form-control-sm"
+                           style="text-transform: uppercase;"
+                           maxlength="50" />
+                </td>
+                <td>
+                    <input type="text"
+                           name="EditForm.License_number"
+                           value="@p.License_number"
+                           form="update-form-@p.Id"
+                           class="form-control form-control-sm" />
+                </td>
+                <td class="text-center">
+                    <button type="submit"
+                            form="update-form-@p.Id"
+                            class="btn btn-sm btn-outline-warning"
+                            title="Enregistrer">
+                        <i class="bi bi-save"></i>
+                    </button>
+                </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
