@@ -463,7 +463,8 @@
                 backgroundColor: 'rgba(13, 110, 253, 0.2)',
                 tension: 0,
                 fill: false,
-                pointRadius: 0,
+                pointRadius: 5,
+                pointHoverRadius: 7,
                 borderWidth: 2,
                 parsing: true
             }
@@ -490,6 +491,13 @@
                             const date = new Date(context.parsed.x);
                             const formattedDate = new Intl.DateTimeFormat('fr-FR').format(date);
                             const points = context.parsed.y;
+
+                            // 1. Si on survole la courbe (index 1)
+                            if (context.datasetIndex === 1) {
+                                return `${points} points`;
+                            }
+
+                            // 2. Si on survole le nuage de points (index 0)
                             const result = context.raw.result;
                             return `${formattedDate} : ${points} points (${result})`;
                         }
