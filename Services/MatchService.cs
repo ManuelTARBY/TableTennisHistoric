@@ -555,6 +555,7 @@ namespace TableTennisHistoric.Services
                         Value = cc.Id.ToString(),
                         Text = cc.Competition.Name
                     })
+                    .OrderBy(cc => cc.Text)
                     .ToListAsync()
                 : new List<SelectListItem>();
 

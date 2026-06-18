@@ -52,6 +52,16 @@ namespace TableTennisHistoric.Pages
 
         public async Task OnGetAsync()
         {
+            // Restaure la valeur depuis la session
+            var sessionValue = HttpContext.Session.GetString("MyLastPoints");
+            if (sessionValue != null && decimal.TryParse(sessionValue,
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out decimal lastPoints))
+            {
+                Input.My_points_at_match = lastPoints;
+            }
+
             await LoadSelectListsAsync();
         }
 
@@ -83,6 +93,10 @@ namespace TableTennisHistoric.Pages
                 await LoadSelectListsAsync();
                 return Page();
             }
+
+            // Conserve la valeur en session
+            HttpContext.Session.SetString("MyLastPoints",
+                Input.My_points_at_match.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             return RedirectToPage();
         }

@@ -119,6 +119,12 @@ namespace TableTennisHistoric.Services
 
         public async Task<(bool Success, string? Error)> CreateCompetitionAsync(Competition competition)
         {
+            
+            var exists = await _context.Competition.AnyAsync(c => c.Name == competition.Name);
+
+            if (exists)
+                return (false, "Cette compétition existe déjà.");
+
             try
             {
                 _context.Competition.Add(competition);
