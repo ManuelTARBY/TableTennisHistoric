@@ -1,73 +1,94 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 using TableTennisHistoric.DTO;
+using TableTennisHistoric.Models;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Players
 {
-    public class CreateModel : PageModel
+    public class PlayersModel : PageModel
     {
         private readonly IPlayerService _playerService;
 
-        public CreateModel(IPlayerService playerService)
+        public PlayersModel(IPlayerService playerService)
         {
             _playerService = playerService;
         }
 
         public List<PlayerEditDTO> Players { get; set; } = new();
-
-        [BindProperty]
-        public CreatePlayerForm CreateForm { get; set; } = new();
-
-        [BindProperty]
-        public PlayerEditDTO EditForm { get; set; } = new();
-
+        public SelectList Clubs { get; set; } = null!;
+        public SelectList Seasons { get; set; } = null!;
         public string? SuccessMessage { get; set; }
 
-        public class CreatePlayerForm
+        [BindProperty]
+        public CreatePlayerWithAffiliationForm Form { get; set; } = new();
+
+        public class CreatePlayerWithAffiliationForm
         {
+            [Required(ErrorMessage = "Le prénom est obligatoire.")]
             public string First_name { get; set; } = "";
+
+            [Required(ErrorMessage = "Le nom est obligatoire.")]
             public string Last_name { get; set; } = "";
+
             public string? License_number { get; set; }
+
+            [Required(ErrorMessage = "La saison est obligatoire.")]
+            public int SeasonId { get; set; }
+
+            [Required(ErrorMessage = "Le club est obligatoire.")]
+            public int ClubId { get; set; }
+
+            [Required(ErrorMessage = "La catégorie est obligatoire.")]
+            public PlayerSeason.PlayerCategory? Category { get; set; }
+            public decimal Points_start { get; set; }
+            public decimal Points_middle { get; set; }
         }
 
         public async Task OnGetAsync()
         {
-            Players = await _playerService.GetAllPlayerEditDTOAsync();
+            await LoadDataAsync();
         }
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
-            ModelState.Clear();
-
-            if (string.IsNullOrWhiteSpace(CreateForm.First_name) || string.IsNullOrWhiteSpace(CreateForm.Last_name))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(string.Empty, "Le prénom et le nom sont obligatoires.");
-                Players = await _playerService.GetAllPlayerEditDTOAsync();
+                await LoadDataAsync();
                 return Page();
             }
 
-            if (await _playerService.GetPlayerByLicenseNumberAsync(CreateForm.License_number) != null)
+            var (success, error, playerId) = await _playerService.CreatePlayerWithAffiliationAsync(
+                new Models.Player
+                {
+                    First_name = Form.First_name,
+                    Last_name = Form.Last_name,
+                    License_number = Form.License_number
+                },
+                new PlayerSeason
+                {
+                    SeasonId = Form.SeasonId,
+                    ClubId = Form.ClubId,
+                    Category = Form.Category,
+                    Points_start = Form.Points_start,
+                    Points_middle = Form.Points_middle
+                }
+            );
+
+            if (!success)
             {
-                ModelState.AddModelError(string.Empty, "Un joueur est déjà enregistré sous ce numéro de license.");
-                Players = await _playerService.GetAllPlayerEditDTOAsync();
+                ModelState.AddModelError(string.Empty, error!);
+                await LoadDataAsync();
                 return Page();
             }
 
-            await _playerService.CreatePlayerAsync(new Models.Player
-            {
-                First_name = CreateForm.First_name,
-                Last_name = CreateForm.Last_name,
-                License_number = CreateForm.License_number
-            });
-
-            SuccessMessage = $"Le joueur {CreateForm.First_name} {CreateForm.Last_name.ToUpper()} a bien été créé.";
-
-            // Réinitialisation des champs
-            CreateForm = new CreatePlayerForm();
+            SuccessMessage = $"Le joueur {Form.First_name} {Form.Last_name.ToUpper()} a bien été créé avec son affiliation.";
             ModelState.Clear();
-
+            Form = new CreatePlayerWithAffiliationForm();
             Players = await _playerService.GetAllPlayerEditDTOAsync();
+            await LoadDataAsync();
             return Page();
         }
 
@@ -78,7 +99,7 @@ namespace TableTennisHistoric.Pages.Players
             if (string.IsNullOrWhiteSpace(EditForm.First_name) || string.IsNullOrWhiteSpace(EditForm.Last_name))
             {
                 ModelState.AddModelError(string.Empty, "Le prénom et le nom sont obligatoires.");
-                Players = await _playerService.GetAllPlayerEditDTOAsync();
+                await LoadDataAsync();
                 return Page();
             }
 
@@ -87,12 +108,23 @@ namespace TableTennisHistoric.Pages.Players
             if (!success)
             {
                 ModelState.AddModelError(string.Empty, error!);
-                Players = await _playerService.GetAllPlayerEditDTOAsync();
+                await LoadDataAsync();
                 return Page();
             }
 
-            Players = await _playerService.GetAllPlayerEditDTOAsync();
+            await LoadDataAsync();
             return Page();
+        }
+
+        [BindProperty]
+        public PlayerEditDTO EditForm { get; set; } = new();
+
+        private async Task LoadDataAsync()
+        {
+            Players = await _playerService.GetAllPlayerEditDTOAsync();
+            var lists = await _playerService.GetCreatePlayerSelectListsAsync();
+            Clubs = lists.Clubs;
+            Seasons = lists.Seasons;
         }
     }
 }

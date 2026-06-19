@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using TableTennisHistoric.DTO;
-using TableTennisHistoric.Services;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages.Players

@@ -1,5 +1,5 @@
 ﻿@page
-@model TableTennisHistoric.Pages.Players.CreateModel
+@model TableTennisHistoric.Pages.Players.PlayersModel
 @{
     ViewData["Title"] = "Gestion des joueurs";
 }
@@ -21,25 +21,60 @@
     <div class="alert alert-success">@Model.SuccessMessage</div>
 }
 
-<!-- Formulaire de création -->
+<!-- Formulaire de création avec affiliation -->
 <div class="border rounded p-4 shadow-sm bg-light mb-4">
-    <h4 class="mb-3 text-primary">Créer un joueur</h4>
+    <h4 class="mb-3 text-primary">Créer un joueur et son affiliation</h4>
     <form method="post" asp-page-handler="Create">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
+        <div class="row g-3">
+            <div class="col-md-4">
                 <label class="form-label fw-bold">Prénom</label>
-                <input asp-for="CreateForm.First_name" class="form-control" maxlength="50" />
+                <input asp-for="Form.First_name" class="form-control" maxlength="50" />
+                <span asp-validation-for="Form.First_name" class="text-danger"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label fw-bold">Nom</label>
-                <input asp-for="CreateForm.Last_name" class="form-control"
+                <input asp-for="Form.Last_name" class="form-control"
                        style="text-transform: uppercase;" maxlength="50" />
+                <span asp-validation-for="Form.Last_name" class="text-danger"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label fw-bold">Numéro de licence</label>
-                <input asp-for="CreateForm.License_number" class="form-control" />
+                <input asp-for="Form.License_number" class="form-control"
+                       inputmode="numeric"
+                       onkeypress="return /[0-9]/.test(event.key)"
+                       onpaste="return false" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Saison</label>
+                <select asp-for="Form.SeasonId" asp-items="Model.Seasons" class="form-select">
+                    <option value="">-- Sélectionnez une saison --</option>
+                </select>
+                <span asp-validation-for="Form.SeasonId" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Club</label>
+                <select asp-for="Form.ClubId" asp-items="Model.Clubs" class="form-select">
+                    <option value="">-- Sélectionnez un club --</option>
+                </select>
+                <span asp-validation-for="Form.ClubId" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Catégorie</label>
+                <select asp-for="Form.Category"
+                        class="form-select"
+                        asp-items="Html.GetEnumSelectList<Models.PlayerSeason.PlayerCategory>()">
+                    <option value="">-- Sélectionnez une catégorie --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Points début de saison</label>
+                <input asp-for="Form.Points_start" type="number" step="1" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Points milieu de saison</label>
+                <input asp-for="Form.Points_middle" type="number" step="1" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-plus-circle"></i> Créer
                 </button>
@@ -91,14 +126,28 @@
                            class="form-control form-control-sm" />
                 </td>
                 <td class="text-center">
-                    <button type="submit"
-                            form="update-form-@p.Id"
-                            class="btn btn-sm btn-outline-warning"
-                            title="Enregistrer">
-                        <i class="bi bi-save"></i>
-                    </button>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit"
+                                form="update-form-@p.Id"
+                                class="btn btn-sm btn-outline-warning"
+                                title="Enregistrer">
+                            <i class="bi bi-save"></i>
+                        </button>
+
+                        <a asp-page="/Players/ManagePlayerSeason"
+                           asp-route-playerId="@p.Id"
+                           asp-route-returnUrl="@string.Concat(Request.Path, Request.QueryString)"
+                           class="btn btn-sm btn-outline-secondary"
+                           title="Gérer les affiliations">
+                            <i class="bi bi-journal-text"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

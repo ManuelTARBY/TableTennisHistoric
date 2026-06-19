@@ -8,6 +8,7 @@
     <h1>Affiliations @Model.DeOuD@Model.PlayerFullName</h1>
     <a asp-page="/Players/Affiliate"
        asp-route-SelectedPlayerId="@Model.PlayerId"
+       asp-route-returnUrl="@Model.ReturnUrl"
        class="btn btn-success">
         <i class="bi bi-plus-circle"></i> Ajouter une affiliation
     </a>
@@ -44,6 +45,7 @@ else
             @foreach (var ps in Model.PlayerSeasons)
             {
                 <form id="update-form-@ps.Id" method="post" asp-page-handler="Update">
+                    <input type="hidden" asp-for="ReturnUrl" />
                     <input type="hidden" name="EditForm.Id" value="@ps.Id" />
                     <input type="hidden" name="EditForm.PlayerId" value="@ps.PlayerId" />
                     <input type="hidden" name="EditForm.SeasonId" value="@ps.SeasonId" />
@@ -138,6 +140,7 @@ else
             </div>
             <div class="modal-footer">
                 <form method="post" asp-page-handler="Delete">
+                    <input type="hidden" asp-for="ReturnUrl" />
                     <input type="hidden" name="id" id="modalPlayerSeasonId" />
                     <input type="hidden" name="PlayerId" value="@Model.PlayerId" />
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -155,28 +158,14 @@ else
     </a>
 </div>
 
+
 @section Scripts {
     <script>
-
         function getDeOuD(name) {
             if (!name) return "de ";
             const voyelles = "aeiouàâäéèêëîïôöùûüæœAEIOUÀÂÄÉÈÊËÎÏÔÖÙÛÜÆŒ";
             return voyelles.includes(name[0]) ? "d'" : "de ";
         }
-
-        deleteModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-bs-id');
-            const season = button.getAttribute('data-bs-season');
-            const player = button.getAttribute('data-bs-player');
-
-            document.getElementById('modalPlayerSeasonId').value = id;
-            document.getElementById('modalSeasonName').textContent = season;
-            document.getElementById('modalPlayerName').textContent = player;
-
-            // Met à jour le "de/d'" dans la modale
-            document.getElementById('modalDeOuD').textContent = getDeOuD(player);
-        });
 
         document.addEventListener('DOMContentLoaded', () => {
             const deleteModal = document.getElementById('deleteModal');
@@ -190,6 +179,9 @@ else
                     document.getElementById('modalPlayerSeasonId').value = id;
                     document.getElementById('modalSeasonName').textContent = season;
                     document.getElementById('modalPlayerName').textContent = player;
+
+                    // Met à jour le "de/d'" dans la modale
+                    document.getElementById('modalDeOuD').textContent = getDeOuD(player);
                 });
             }
         });
