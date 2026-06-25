@@ -692,5 +692,93 @@ namespace TableTennisHistoric.Services
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<MatchDTO>> GetFilteredMatchesAsync(MatchFilterDTO filter)
+        {
+            var query = _context.TableTennisMatch
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Competition)
+                .Include(m => m.CompetitionCoefficient)
+                    .ThenInclude(cc => cc.Season)
+                .Include(m => m.Opponent)
+                    .ThenInclude(p => p.PlayerSeasons)
+                        .ThenInclude(ps => ps.Club)
+                .Include(m => m.Sets)
+                .AsQueryable();
+
+            // Filtre saison
+            if (filter.SeasonId.HasValue)
+                query = query.Where(m => m.CompetitionCoefficient.SeasonId == filter.SeasonId);
+
+            // Filtre compétition
+            if (filter.CompetitionId.HasValue)
+                query = query.Where(m => m.CompetitionCoefficient.CompetitionId == filter.CompetitionId);
+
+            // Filtre club adversaire
+            if (filter.ClubId.HasValue)
+                query = query.Where(m => m.Opponent.PlayerSeasons
+                    .Any(ps => ps.ClubId == filter.ClubId
+                            && ps.SeasonId == m.CompetitionCoefficient.SeasonId));
+
+            // Filtre période
+            if (filter.DateFrom.HasValue)
+                query = query.Where(m => m.Date_match >= filter.DateFrom);
+
+            if (filter.DateTo.HasValue)
+                query = query.Where(m => m.Date_match <= filter.DateTo);
+
+            // Filtre résultat
+            if (filter.Result.HasValue)
+                query = query.Where(m => m.Result == filter.Result);
+
+            // Filtre nombre de sets
+            if (filter.NbOfSets.HasValue)
+                query = query.Where(m => m.Sets.Count == filter.NbOfSets);
+
+            // Filtre classement adversaire
+            if (filter.OpponentPointsMin.HasValue)
+                query = query.Where(m => m.Opponent_points_at_match >= filter.OpponentPointsMin);
+
+            if (filter.OpponentPointsMax.HasValue)
+                query = query.Where(m => m.Opponent_points_at_match <= filter.OpponentPointsMax);
+
+            var raw = await query
+                .OrderByDescending(m => m.Date_match)
+                .ThenByDescending(m => m.Id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return raw.Select(m => new MatchDTO
+            {
+                Id = m.Id,
+                Date_of_match = m.Date_match,
+                Competition = m.CompetitionCoefficient.Competition.Name,
+                Coefficient = m.CompetitionCoefficient.Coefficient,
+                Season_name = m.CompetitionCoefficient.Season.Name,
+                OpponnentId = m.OpponentId,
+                Opponent_first_name = m.Opponent.First_name,
+                Opponent_last_name = m.Opponent.Last_name,
+                Opponent_full_name = m.Opponent.First_name + " " + m.Opponent.Last_name,
+                Opponent_club = m.Opponent.PlayerSeasons
+                    .Where(ps => ps.SeasonId == m.CompetitionCoefficient.SeasonId)
+                    .Select(ps => ps.Club.Name_abrev)
+                    .FirstOrDefault() ?? "",
+                My_points_at_match = m.My_points_at_match,
+                Opponent_points_at_match = m.Opponent_points_at_match,
+                Point_difference = m.Opponent_points_at_match - m.My_points_at_match,
+                Comment = m.Comment,
+                Result = (MatchDTO.MatchResult)m.Result,
+                Gain = ComputeCore(
+                    m.Opponent_points_at_match - m.My_points_at_match,
+                    m.Result == TableTennisMatch.MatchResult.V,
+                    m.CompetitionCoefficient.Coefficient),
+                MatchSets = m.Sets.OrderBy(s => s.SetNumber).Select(s => new SetDTO
+                {
+                    SetNumber = s.SetNumber,
+                    Player1Score = s.Player1Score,
+                    Player2Score = s.Player2Score
+                }).ToList()
+            }).ToList();
+        }
     }
 }

@@ -95,7 +95,7 @@ namespace TableTennisHistoric.Pages
                 Department = CreateClubForm.Department
             });
 
-            TempData["Success"] = "Club créé.";
+            TempData["Success"] = "Club créé";
             return RedirectToPage();
         }
 
@@ -125,7 +125,7 @@ namespace TableTennisHistoric.Pages
                 return Page();
             }
 
-            TempData["Success"] = "Club modifié.";
+            TempData["Success"] = "Club modifié";
             return RedirectToPage();
         }
 
@@ -150,7 +150,7 @@ namespace TableTennisHistoric.Pages
             SelectedClubId = CreateTeamsForm.TeamClubId;
             CreateTeamsForm = new CreateTeamsModel();
             await LoadBaseDataAsync();
-            TempData["Success"] = "Équipes créées.";
+            TempData["Success"] = "Équipes créées";
             return Page();
         }
 
@@ -173,7 +173,7 @@ namespace TableTennisHistoric.Pages
                 return Page();
             }
 
-            TempData["Success"] = "Club supprimé.";
+            TempData["Success"] = "Club supprimé";
             return RedirectToPage();
         }
     }

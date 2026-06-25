@@ -1,0 +1,167 @@
+﻿@page
+@using TableTennisHistoric.DTO
+@using TableTennisHistoric.Models
+@model TableTennisHistoric.Pages.FilteredMatches
+@{
+    ViewData["Title"] = "Recherche de matchs";
+}
+
+<h1 class="mb-4 text-center">Recherche de matchs</h1>
+
+<!-- Formulaire de filtres -->
+<div class="border rounded p-4 shadow-sm bg-light mb-4">
+    <form method="get">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Saison</label>
+                <select asp-for="Filter.SeasonId" asp-items="Model.Seasons" class="form-select">
+                    <option value="">-- Toutes --</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Compétition</label>
+                <select asp-for="Filter.CompetitionId" asp-items="Model.Competitions" class="form-select">
+                    <option value="">-- Toutes --</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Club adversaire</label>
+                <select asp-for="Filter.ClubId" asp-items="Model.Clubs" class="form-select">
+                    <option value="">-- Tous --</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Du</label>
+                <input type="date" asp-for="Filter.DateFrom" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Au</label>
+                <input type="date" asp-for="Filter.DateTo" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Résultat</label>
+                <select asp-for="Filter.Result" class="form-select">
+                    <option value="">-- Tous --</option>
+                    <option value="V">Victoire</option>
+                    <option value="D">Défaite</option>
+                    <option value="F">Forfait</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Nb de sets</label>
+                <select asp-for="Filter.NbOfSets" class="form-select">
+                    <option value="">-- Tous --</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label fw-bold">Points min</label>
+                <input type="number" asp-for="Filter.OpponentPointsMin"
+                       class="form-control" step="1" min="0" />
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label fw-bold">Points max</label>
+                <input type="number" asp-for="Filter.OpponentPointsMax"
+                       class="form-control" step="1" min="0" />
+            </div>
+
+            <div class="col-12 d-flex gap-2 justify-content-end">
+                <a asp-page="/FilteredMatches" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Réinitialiser
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Résultats -->
+    <p class="text-muted">@Model.Matches.Count match@(Model.Matches.Count > 1 ? "s" : "") trouvé@(Model.Matches.Count > 1 ? "s" : "")</p>
+
+    @if (Model.Matches.Any())
+    {
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Compétition</th>
+                    <th>Adversaire</th>
+                    <th>Club</th>
+                    <th>Points adv.</th>
+                    <th>Écart</th>
+                    <th>Résultat</th>
+                    <th>Sets</th>
+                    <th>Gain</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var match in Model.Matches)
+                {
+                    <tr title="@match.Comment">
+                        <td>@match.Date_of_match.ToShortDateString()</td>
+                        <td>@match.Competition</td>
+                        <td>
+                            @match.Opponent_full_name  @if (!string.IsNullOrEmpty(match.Comment))
+                            {
+                                <i class="bi bi-chat-square-text-fill text-warning" data-bs-toggle="tooltip"></i>
+                            }
+                        </td>
+                        <td>@match.Opponent_club</td>
+                        <td>@match.Opponent_points_at_match.ToString("0.###")</td>
+                        <td>@(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.###")</td>
+                        <td>
+                            @{
+                                string badge = match.Result switch
+                                {
+                                    MatchDTO.MatchResult.V => "<span class='badge bg-success fs-6'>Victoire</span>",
+                                    MatchDTO.MatchResult.D => "<span class='badge bg-danger fs-6'>Défaite</span>",
+                                    _ => "<span class='badge bg-secondary fs-6'>Forfait</span>"
+                                };
+                            }
+                            @Html.Raw(badge)
+                        </td>
+                        <td>
+                            @if (match.MatchSets != null && match.MatchSets.Any())
+                            {
+                                <table class="sets-table">
+                                    <tr>
+                                        @foreach (var set in match.MatchSets)
+                                        {
+                                            <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                                @set.Player1Score
+                                            </td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @foreach (var set in match.MatchSets)
+                                        {
+                                            <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                                @set.Player2Score
+                                            </td>
+                                        }
+                                    </tr>
+                                </table>
+                            }
+                        </td>
+                        <td>@(match.Gain > 0 ? "+" : "")@match.Gain.ToString("0.###")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info">Aucun match ne correspond aux critères sélectionnés.</div>
+    }
