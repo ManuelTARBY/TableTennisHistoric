@@ -28,6 +28,8 @@ namespace TableTennisHistoric.Pages
 
         [Microsoft.AspNetCore.Mvc.BindProperty(SupportsGet = true)]
         public MatchFilterDTO Filter { get; set; } = new();
+        public bool DisplayWinDefeatPercentage { get; set; } = true;
+        public decimal? VictoryPercentage { get; set; } = 0;
 
 
         public async Task OnGetAsync()
@@ -43,6 +45,41 @@ namespace TableTennisHistoric.Pages
                 Matches = await _matchService.GetAllMatchesDTOAsync();
                 Matches = Matches.OrderByDescending(m => m.Date_of_match).ThenBy(m => m.Id).ToList();
             }
+
+            DisplayWinDefeatPercentage = CheckForDisplayWinDefeatPercentage();
+            if (DisplayWinDefeatPercentage)
+            {
+                VictoryPercentage = CalculateVictoryPercentage();
+            }
+        }
+
+        public decimal CalculateVictoryPercentage()
+        {
+            int victories = Matches.Count(m => m.Result == MatchDTO.MatchResult.V);
+            decimal percentage = (decimal)victories / Matches.Count * 100;
+            return Math.Round(percentage, 2);
+        }
+
+        public bool CheckForDisplayWinDefeatPercentage()
+        {
+            if (Matches.Count == 0)
+            {
+                return false;
+            }
+
+            // Détermine les filtres qui vont déclencher l'affichage du pourcentage de victoires/défaites
+            if (Filter.SeasonId.HasValue
+                || Filter.CompetitionId.HasValue
+                || Filter.ClubId.HasValue
+                || (Filter.DateFrom.HasValue && Filter.DateTo.HasValue)
+                || Filter.NbOfSets.HasValue
+                || Filter.OpponentPointsMin.HasValue
+                || Filter.OpponentPointsMax.HasValue)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool HasAnyFilter()

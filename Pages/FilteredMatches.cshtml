@@ -87,8 +87,19 @@
     </form>
 </div>
 
-<!-- Résultats -->
+<!-- Graphique victoires/défaites -->
+@if (Model.DisplayWinDefeatPercentage)
+{
+    <div class="d-flex justify-content-center mb-4">
+        <div class="chart-container" style="max-width: 400px; width: 100%;">
+            <canvas id="victoryGauge"></canvas>
+        </div>
+    </div>
+}
+else
+{
     <p class="text-muted">@Model.Matches.Count match@(Model.Matches.Count > 1 ? "s" : "") trouvé@(Model.Matches.Count > 1 ? "s" : "")</p>
+}
 
     @if (Model.Matches.Any())
     {
@@ -165,3 +176,84 @@
     {
         <div class="alert alert-info">Aucun match ne correspond aux critères sélectionnés.</div>
     }
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+<!-- Graphique en camembert du ratio victoire/défaite -->
+<script>
+    (() => {
+        const victoryPercentage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VictoryPercentage));
+        const ctxVictory = document.getElementById('victoryGauge').getContext('2d');
+        const nbOfMatch = @Model.Matches.Count;
+
+        new Chart(ctxVictory, {
+            type: 'doughnut',
+            data: {
+                labels: ["Victoires", "Défaites"],
+                datasets: [{
+                    data: [victoryPercentage, 100 - victoryPercentage],
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.8)',
+                        'rgba(255, 0, 0, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '60%',
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    title: { display: true, text: 'Pourcentage victoires/défaites', color: 'black' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + (nbOfMatch * context.raw.toFixed(2) / 100).toFixed(0) + ' (' + context.raw.toFixed(2) + '%)';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'center',
+                        align: 'center',
+                            formatter: function (value, context) {
+                                if (value == null || isNaN(value)) {
+                                    return "";
+                                }
+                                return value.toFixed(2) + '%';
+    }
+                    },
+                    centerText: {
+                        text: [@Model.Matches.Count + ' matchs'],
+                        fontSize: 38,
+                        fontFamily: 'Arial',
+                        color: '#000'
+                    }
+                }
+            },
+            plugins: [ChartDataLabels,
+                     {
+                        id: 'centerText',
+                        afterDraw(chart, args, options) {
+                            if (!options || !options.text) {
+                                return;
+                            }
+
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            const arc = meta.data[0];
+
+                            ctx.save();
+                            ctx.font = `${options.fontSize}px ${options.fontFamily}`;
+                            ctx.fillStyle = options.color;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(options.text, arc.x, arc.y);
+                            ctx.restore();
+                            }
+                }]
+        });
+    })();
+</script>
