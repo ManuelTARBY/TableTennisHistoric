@@ -176,12 +176,12 @@
 
 </div>
 
-<!-- Tableau des matchs joués sur la saison en cours -->
+<!-- Tableau des matchs joués sur la saison sélectionnée -->
 <table class="table table-striped mt-5">
     @foreach (var matchDTO in Model.SortedMatchesDTO.Reverse())
     {
         int theYear = Model.SeasonDTO != null ? (matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year : Model.SeasonDTO.End_date.Year) : 3000;
-        @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today)
+        @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today && new DateTime(theYear, matchDTO.Key, 1) < new DateTime(theYear, 7, 1))
         {
             var year = matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year.ToString() : Model.SeasonDTO.End_date.Year.ToString();
             var collapseId = $"collapse-{matchDTO.Key}-{year}";

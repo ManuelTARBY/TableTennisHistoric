@@ -62,7 +62,7 @@ namespace TableTennisHistoric.Pages
 
         public bool CheckForDisplayWinDefeatPercentage()
         {
-            if (Matches.Count == 0)
+            if (Matches.Count == 0 || Filter.Result.HasValue)
             {
                 return false;
             }
@@ -75,6 +75,12 @@ namespace TableTennisHistoric.Pages
                 || Filter.NbOfSets.HasValue
                 || Filter.OpponentPointsMin.HasValue
                 || Filter.OpponentPointsMax.HasValue)
+            {
+                return true;
+            }
+
+            // Si pas de filtres spécifiques (cas du lancement de la page), on affiche le pourcentage
+            if (HasAnyFilter() == false)
             {
                 return true;
             }
