@@ -308,7 +308,7 @@ namespace TableTennisHistoric.Services
                 "Id", "Name");
 
             var seasons = new SelectList(
-                await _context.Season.ToListAsync(),
+                await _context.Season.OrderByDescending(s => s.Start_date).ToListAsync(),
                 "Id", "Name");
 
             return (players, clubs, seasons);
