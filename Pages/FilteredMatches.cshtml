@@ -75,6 +75,46 @@
                        class="form-control" step="1" min="0" />
             </div>
 
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Performance</label>
+
+                <div class="d-flex gap-3 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="Filter.Perf"
+                               id="perfAll"
+                               value=""
+                               checked />
+                        <label class="form-check-label" for="perfAll">
+                            Tous
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="Filter.Perf"
+                               id="perf"
+                               value="Perf" />
+                        <label class="form-check-label" for="perf">
+                            Perf
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="Filter.Perf"
+                               id="underPerf"
+                               value="UnderPerf" />
+                        <label class="form-check-label" for="underPerf">
+                            Contre-perf
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-12 d-flex gap-2 justify-content-end">
                 <a asp-page="/FilteredMatches" class="btn btn-secondary">
                     <i class="bi bi-x-circle"></i> Réinitialiser
@@ -103,28 +143,46 @@ else
 
     @if (Model.Matches.Any())
     {
+        string SeasonOfLastMatch = null;
         <table class="table table-striped align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Date</th>
-                    <th>Compétition</th>
-                    <th>Adversaire</th>
-                    <th>Club</th>
-                    <th>Points adv.</th>
-                    <th>Écart</th>
-                    <th>Résultat</th>
-                    <th>Sets</th>
-                    <th>Gain</th>
-                </tr>
-            </thead>
             <tbody>
-                @foreach (var match in Model.Matches)
+            @foreach (var match in Model.Matches)
+            {
+                if (SeasonOfLastMatch == null || !SeasonOfLastMatch.Equals(match.Season_name))
                 {
+                <thead class="table-secondary">
+                    <tr>
+                        <th colspan="9" class="text-center fs-5 fw-bold py-3">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            @match.Season_name
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <th>Compétition</th>
+                        <th>Adversaire</th>
+                        <th>Club</th>
+                        <th>Points adv.</th>
+                        <th>Écart</th>
+                        <th>Résultat</th>
+                        <th>Sets</th>
+                        <th>Gain</th>
+                    </tr>
+                </thead>
+                }
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
                         <td>@match.Competition</td>
                         <td>
-                            @match.Opponent_full_name  @if (!string.IsNullOrEmpty(match.Comment))
+                            <a asp-page="/OpponentsHistoric"
+                               asp-route-SelectedOpponentId="@match.OpponnentId"
+                               target="_blank"
+                               class="text-decoration-none text-primary fw-semibold opponent-link"
+                               title="Voir l'historique des matchs contre @match.Opponent_full_name">
+                                @match.Opponent_full_name
+                                <i class="bi bi-box-arrow-up-right ms-1 small opacity-75"></i>
+                            </a>
+                            @if (!string.IsNullOrEmpty(match.Comment))
                             {
                                 <i class="bi bi-chat-square-text-fill text-warning" data-bs-toggle="tooltip"></i>
                             }
@@ -168,7 +226,8 @@ else
                         </td>
                         <td>@(match.Gain > 0 ? "+" : "")@match.Gain.ToString("0.###")</td>
                     </tr>
-                }
+                SeasonOfLastMatch = match.Season_name;
+            }
             </tbody>
         </table>
     }

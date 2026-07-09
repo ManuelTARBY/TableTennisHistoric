@@ -735,18 +735,61 @@ namespace TableTennisHistoric.Services
             if (filter.NbOfSets.HasValue)
                 query = query.Where(m => m.Sets.Count == filter.NbOfSets);
 
-            // Filtre classement adversaire
+            // Filtres classement adversaire
             if (filter.OpponentPointsMin.HasValue)
                 query = query.Where(m => m.Opponent_points_at_match >= filter.OpponentPointsMin);
 
             if (filter.OpponentPointsMax.HasValue)
                 query = query.Where(m => m.Opponent_points_at_match <= filter.OpponentPointsMax);
 
-            var raw = await query
-                .OrderByDescending(m => m.Date_match)
-                .ThenByDescending(m => m.Id)
-                .AsNoTracking()
-                .ToListAsync();
+
+            switch (filter.Perf)
+            {
+                case "Perf":
+                    query = query
+                        .Where(m => (m.Opponent_points_at_match - m.My_points_at_match) >= 25m
+                                 && m.Result == TableTennisMatch.MatchResult.V)
+                        .OrderByDescending(m => m.Opponent_points_at_match - m.My_points_at_match);
+                    break;
+
+                case "UnderPerf":
+                    query = query
+                        .Where(m => (m.My_points_at_match - m.Opponent_points_at_match) >= 25m
+                                 && m.Result == TableTennisMatch.MatchResult.D)
+                        .OrderByDescending(m => m.My_points_at_match - m.Opponent_points_at_match);
+                    break;
+            }
+
+            //// Filtre performance
+            //if (filter.Perf.HasValue)
+            //{
+            //    query = query.Where(m => (m.Opponent_points_at_match - m.My_points_at_match) >= 24.99m && m.Result == TableTennisMatch.MatchResult.V)
+            //        .OrderByDescending(m => (m.Opponent_points_at_match - m.My_points_at_match));
+            //}
+
+            //// Filtre contre performance
+            //if (filter.UnderPerf.HasValue)
+            //{
+            //    query = query.Where(m => (m.My_points_at_match - m.Opponent_points_at_match) >= 24.99m && m.Result == TableTennisMatch.MatchResult.D)
+            //        .OrderBy(m => (m.My_points_at_match - m.Opponent_points_at_match));
+            //}
+
+            List<TableTennisMatch> raw;
+
+            if (filter.Perf == "Perf" || filter.Perf == "UnderPerf")
+            {
+               raw = await query
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            else
+            {
+                raw = await query
+                    .OrderByDescending(m => m.Date_match)
+                    .ThenByDescending(m => m.Id)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
 
             return raw.Select(m => new MatchDTO
             {

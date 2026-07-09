@@ -30,6 +30,7 @@ namespace TableTennisHistoric.Pages
         public MatchFilterDTO Filter { get; set; } = new();
         public bool DisplayWinDefeatPercentage { get; set; } = true;
         public decimal? VictoryPercentage { get; set; } = 0;
+        public string? Performance { get; set; }
 
 
         public async Task OnGetAsync()
@@ -67,6 +68,11 @@ namespace TableTennisHistoric.Pages
                 return false;
             }
 
+            if (!Filter.Perf.Equals(""))
+            {
+                return false;
+            }
+
             // Détermine les filtres qui vont déclencher l'affichage du pourcentage de victoires/défaites
             if (Filter.SeasonId.HasValue
                 || Filter.CompetitionId.HasValue
@@ -98,7 +104,8 @@ namespace TableTennisHistoric.Pages
                 || Filter.Result.HasValue
                 || Filter.NbOfSets.HasValue
                 || Filter.OpponentPointsMin.HasValue
-                || Filter.OpponentPointsMax.HasValue;
+                || Filter.OpponentPointsMax.HasValue
+                || !Filter.Perf.Equals("");
         }
 
         private async Task LoadSelectListsAsync()

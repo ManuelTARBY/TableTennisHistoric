@@ -133,85 +133,85 @@
             {
                 if (SeasonOfLastMatch == null || SeasonOfLastMatch != match.Season_name)
                 {
-                <thead class="table-secondary">
-                    <tr>
-                        <th colspan="9" class="text-center fs-5 fw-bold py-3">
-                            <i class="bi bi-calendar3 me-2"></i>
-                                @match.Season_name
-                        </th>
-                    </tr>
-                    <tr class="table-light">
-                        <th>Date</th>
-                        <th>Compétition</th>
-                        <th>Club</th>
-                        <th>Mes points</th>
-                        <th>Points adversaire</th>
-                        <th>Diff.</th>
-                        <th>Résultat</th>
-                        <th>Sets</th>
-                        <th>Commentaire</th>
-                    </tr>
-                </thead>
+                    <thead class="table-secondary">
+                        <tr>
+                            <th colspan="9" class="text-center fs-5 fw-bold py-3">
+                                <i class="bi bi-calendar3 me-2"></i>
+                                    @match.Season_name
+                            </th>
+                        </tr>
+                        <tr class="table-light">
+                            <th>Date</th>
+                            <th>Compétition</th>
+                            <th>Club</th>
+                            <th>Mes points</th>
+                            <th>Points adversaire</th>
+                            <th>Diff.</th>
+                            <th>Résultat</th>
+                            <th>Sets</th>
+                            <th>Commentaire</th>
+                        </tr>
+                    </thead>
                 }
-            <tr title="@match.Comment">
-                <td>@match.Date_of_match.ToShortDateString()</td>
-                <td>@match.Competition</td>
-                <td>@match.Opponent_club</td>
-                <td>@match.My_points_at_match.ToString("0.##")</td>
-                <td>@match.Opponent_points_at_match.ToString("0.##")</td>
-                <td>
-                        @(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.##")
-                </td>
-                <td>
-                        @switch (match.Result)
-                        {
-                            case MatchDTO.MatchResult.V:
-                            <span class="badge bg-success fs-6">Victoire</span>
-                                break;
-                            case MatchDTO.MatchResult.D:
-                            <span class="badge bg-danger fs-6">Défaite</span>
-                                break;
-                            case MatchDTO.MatchResult.F:
-                            <span class="badge bg-secondary text-white fs-6">Forfait</span>
-                                break;
-                        }
-                </td>
-                <td>
-                        @if (match.MatchSets != null)
-                        {
-                        <table class="sets-table">
-                            <tr>
-                                    @{
-                                        foreach (var set in match.MatchSets)
-                                        {
-                                        <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
-                                                @set.Player1Score
-                                        </td>
+                <tr title="@match.Comment">
+                    <td>@match.Date_of_match.ToShortDateString()</td>
+                    <td>@match.Competition</td>
+                    <td>@match.Opponent_club</td>
+                    <td>@match.My_points_at_match.ToString("0.##")</td>
+                    <td>@match.Opponent_points_at_match.ToString("0.##")</td>
+                    <td>
+                            @(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.##")
+                    </td>
+                    <td>
+                            @switch (match.Result)
+                            {
+                                case MatchDTO.MatchResult.V:
+                                <span class="badge bg-success fs-6">Victoire</span>
+                                    break;
+                                case MatchDTO.MatchResult.D:
+                                <span class="badge bg-danger fs-6">Défaite</span>
+                                    break;
+                                case MatchDTO.MatchResult.F:
+                                <span class="badge bg-secondary text-white fs-6">Forfait</span>
+                                    break;
+                            }
+                    </td>
+                    <td>
+                            @if (match.MatchSets != null)
+                            {
+                            <table class="sets-table">
+                                <tr>
+                                        @{
+                                            foreach (var set in match.MatchSets)
+                                            {
+                                            <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                                    @set.Player1Score
+                                            </td>
+                                            }
                                         }
-                                    }
-                            </tr>
-                            <tr>
-                                    @{
-                                        foreach (var set in match.MatchSets)
-                                        {
-                                        <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
-                                                @set.Player2Score
-                                        </td>
+                                </tr>
+                                <tr>
+                                        @{
+                                            foreach (var set in match.MatchSets)
+                                            {
+                                            <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                                    @set.Player2Score
+                                            </td>
+                                            }
                                         }
-                                    }
-                            </tr>
-                        </table>
+                                </tr>
+                            </table>
+                            }
+                    </td>
+                    <td class="align-middle">
+                        @if (!string.IsNullOrEmpty(match.Comment))
+                        {
+                            <i class="bi bi-chat-square-text-fill text-warning"
+                               data-bs-toggle="tooltip">
+                            </i>
                         }
-                </td>
-                <td class="align-middle">
-                    @if (!string.IsNullOrEmpty(match.Comment))
-                    {
-                        <i class="bi bi-chat-square-text-fill text-warning"
-                           data-bs-toggle="tooltip">
-                        </i>
-                    }
-                </td>
-            </tr>
+                    </td>
+                </tr>
                 SeasonOfLastMatch = match.Season_name;
             }
         </tbody>
@@ -223,6 +223,7 @@ else if (Model.SelectedOpponentId.HasValue)
         Aucun match trouvé pour cet adversaire.
     </div>
 }
+
 
 <!-- Graphique en camembert du ratio victoire/défaite -->
 <script>
