@@ -760,20 +760,6 @@ namespace TableTennisHistoric.Services
                     break;
             }
 
-            //// Filtre performance
-            //if (filter.Perf.HasValue)
-            //{
-            //    query = query.Where(m => (m.Opponent_points_at_match - m.My_points_at_match) >= 24.99m && m.Result == TableTennisMatch.MatchResult.V)
-            //        .OrderByDescending(m => (m.Opponent_points_at_match - m.My_points_at_match));
-            //}
-
-            //// Filtre contre performance
-            //if (filter.UnderPerf.HasValue)
-            //{
-            //    query = query.Where(m => (m.My_points_at_match - m.Opponent_points_at_match) >= 24.99m && m.Result == TableTennisMatch.MatchResult.D)
-            //        .OrderBy(m => (m.My_points_at_match - m.Opponent_points_at_match));
-            //}
-
             List<TableTennisMatch> raw;
 
             if (filter.Perf == "Perf" || filter.Perf == "UnderPerf")

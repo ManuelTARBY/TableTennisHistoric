@@ -13,6 +13,6 @@ namespace TableTennisHistoric.DTO
         public int? NbOfSets { get; set; }
         public decimal? OpponentPointsMin { get; set; }
         public decimal? OpponentPointsMax { get; set; }
-        public string? Perf { get; set; } = string.Empty;
+        public string Perf { get; set; } = "None";
     }
 }

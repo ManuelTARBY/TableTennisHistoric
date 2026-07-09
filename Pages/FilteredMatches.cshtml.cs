@@ -30,7 +30,6 @@ namespace TableTennisHistoric.Pages
         public MatchFilterDTO Filter { get; set; } = new();
         public bool DisplayWinDefeatPercentage { get; set; } = true;
         public decimal? VictoryPercentage { get; set; } = 0;
-        public string? Performance { get; set; }
 
 
         public async Task OnGetAsync()
@@ -68,7 +67,7 @@ namespace TableTennisHistoric.Pages
                 return false;
             }
 
-            if (!Filter.Perf.Equals(""))
+            if (!Filter.Perf.Equals("None"))
             {
                 return false;
             }
@@ -105,7 +104,7 @@ namespace TableTennisHistoric.Pages
                 || Filter.NbOfSets.HasValue
                 || Filter.OpponentPointsMin.HasValue
                 || Filter.OpponentPointsMax.HasValue
-                || !Filter.Perf.Equals("");
+                || !Filter.Perf.Equals("None");
         }
 
         private async Task LoadSelectListsAsync()
