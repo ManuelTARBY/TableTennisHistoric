@@ -30,6 +30,8 @@ namespace TableTennisHistoric.Pages
         public MatchFilterDTO Filter { get; set; } = new();
         public bool DisplayWinDefeatPercentage { get; set; } = true;
         public decimal? VictoryPercentage { get; set; } = 0;
+        public decimal TotalPointsWon { get; set; } = 0;
+        public decimal TotalPointsLost { get; set; } = 0;
 
 
         public async Task OnGetAsync()
@@ -45,6 +47,9 @@ namespace TableTennisHistoric.Pages
                 Matches = await _matchService.GetAllMatchesDTOAsync();
                 Matches = Matches.OrderByDescending(m => m.Date_of_match).ThenBy(m => m.Id).ToList();
             }
+
+            TotalPointsWon = Matches.Where(m => m.Result == MatchDTO.MatchResult.V).Sum(m => m.Gain);
+            TotalPointsLost = Matches.Where(m => m.Result == MatchDTO.MatchResult.D).Sum(m => m.Gain);
 
             DisplayWinDefeatPercentage = CheckForDisplayWinDefeatPercentage();
             if (DisplayWinDefeatPercentage)
