@@ -92,7 +92,11 @@ namespace TableTennisHistoric.Pages
                 else
                 {
                     var currentSeason = await _seasonService.GetCurrentSeasonAsync();
-                    if (currentSeason == null) { ShowSeasonModal = true; return; }
+                    if (currentSeason == null)
+                    {
+                        ShowSeasonModal = true;
+                        return;
+                    }
                     SelectedSeasonId = currentSeason.Id;
                     SeasonDTO = _seasonService.ConvertSeasonToSeasonDTO(currentSeason);
                 }

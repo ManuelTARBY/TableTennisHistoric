@@ -158,8 +158,18 @@ namespace TableTennisHistoric.Services
                     {
                         decimal drift = currentDate.Month == 1 ? (season.p1_drift ?? 0) : (season.p2_drift ?? 0);
                         decimal pointsAfterDrift = Math.Max(Math.Round((decimal)data.MonthliesPointsOrdered[currentDate] - drift, 0, MidpointRounding.AwayFromZero), 500);
-                        data.MonthliesPointsOrdered[currentDate] = Math.Max((decimal)data.MonthliesPointsOrdered[currentDate] - drift, 500);
+                        
+                        // Si on est en juillet, on n'affiche pas le classement mensuel mais le classement officiel (mensuel - dérive avec application de l'arrondi)
+                        if (currentDate.Month == 7)
+                        {
+                            data.MonthliesPointsOrdered[currentDate] = pointsAfterDrift;
+                        }
+                        else
+                        {
+                            data.MonthliesPointsOrdered[currentDate] = Math.Max((decimal)data.MonthliesPointsOrdered[currentDate] - drift, 500);
+                        }
 
+                        // Met à jour le classement officiel de mi-saison si la date de fin de phase 1 est passée et que les points officiels de mi-saison ne sont pas renseignés
                         if (DateOnly.FromDateTime(DateTime.Today) > season.Phase1_End_date && data.PointsMiddleOfSeason == null)
                         {
                             data.PlayerSeason.Points_middle = pointsAfterDrift;

@@ -181,7 +181,8 @@
     @foreach (var matchDTO in Model.SortedMatchesDTO.Reverse())
     {
         int theYear = Model.SeasonDTO != null ? (matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year : Model.SeasonDTO.End_date.Year) : 3000;
-        @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today && new DateTime(theYear, matchDTO.Key, 1) < new DateTime(theYear, 7, 1))
+        // On n'affiche pas les périodes postérieures à la date du jour ni les mois de juillet et d'août de la saison sélectionnée car pas de matchs officiels sur cette période
+        @if (new DateTime(theYear, matchDTO.Key, 1) <= DateTime.Today && (matchDTO.Key != 7 && matchDTO.Key != 8))
         {
             var year = matchDTO.Key >= 9 ? Model.SeasonDTO.Start_date.Year.ToString() : Model.SeasonDTO.End_date.Year.ToString();
             var collapseId = $"collapse-{matchDTO.Key}-{year}";
