@@ -19,6 +19,7 @@ namespace TableTennisHistoric.Pages
 
         public List<MatchDTO> MatchesDTO { get; set; } = new();
         public IEnumerable<SelectListItem> CompetitionCoefficients { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> CompetitionSupplements { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Stages { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Opponents { get; set; } = new List<SelectListItem>();
 
@@ -32,6 +33,7 @@ namespace TableTennisHistoric.Pages
 
             [Required]
             public int CompetitionCoefficientId { get; set; }
+            public int? CompetitionSupplementId { get; set; } = null;
             public int? StageId { get; set; } = null;
 
             [Required]
@@ -77,6 +79,7 @@ namespace TableTennisHistoric.Pages
             {
                 Date_match = Input.Date_match,
                 CompetitionCoefficientId = Input.CompetitionCoefficientId,
+                CompetitionSupplementId = Input.CompetitionSupplementId,
                 StageId = Input.StageId,
                 OpponentId = Input.OpponentId,
                 My_points_at_match = Input.My_points_at_match,
@@ -106,6 +109,7 @@ namespace TableTennisHistoric.Pages
             var data = await _matchService.GetMatchesPageDataAsync();
             MatchesDTO = data.MatchesDTO;
             CompetitionCoefficients = data.CompetitionCoefficients;
+            CompetitionSupplements = data.CompetitionSupplements;
             Opponents = data.Opponents;
             Stages = data.Stages;
         }

@@ -23,6 +23,7 @@ namespace TableTennisHistoric.Datas
         public DbSet<PlayerSeason> PlayerSeason { get; set; }
         public DbSet<TableTennisMatch> TableTennisMatch { get; set; }
         public DbSet<Stage> Stage { get; set; }
+        public DbSet<CompetitionSupplement> CompetitionSupplement { get; set; }
         public DbSet<MatchSet> MatchSet { get; set; }
 
         // Optionnel : configuration fine

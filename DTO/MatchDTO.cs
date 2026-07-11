@@ -26,6 +26,7 @@ namespace TableTennisHistoric.DTO
         public decimal Point_difference { get; set; }
         public string? Comment { get; set; } = null;
         public string? Stage_name { get; set; } = null;
+        public string? CompetitionSupplementName { get; set; } = null;
         public enum MatchResult { V, D, F }
         public MatchResult Result { get; set; }
         public List<SetDTO>? MatchSets { get; set; }

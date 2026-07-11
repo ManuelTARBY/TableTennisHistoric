@@ -89,6 +89,7 @@ namespace TableTennisHistoric.Services
                     m.Date_match,
                     CompetitionName = m.CompetitionCoefficient.Competition.Name,
                     Stage = m.Stage.Name,
+                    CompetitionSupplement = m.CompetitionSupplement,
                     CompetitionCoefficientValue = m.CompetitionCoefficient.Coefficient,
                     OpponentId = m.OpponentId,
                     OpponentFirstName = m.Opponent.First_name,
@@ -118,6 +119,7 @@ namespace TableTennisHistoric.Services
                 Competition = x.CompetitionName,
                 Coefficient = x.CompetitionCoefficientValue,
                 Stage_name = x.Stage,
+                CompetitionSupplementName = x.CompetitionSupplement.Name,
                 OpponnentId = x.OpponentId,
                 Opponent_first_name = x.OpponentFirstName,
                 Opponent_last_name = x.OpponentLastName,
@@ -158,6 +160,7 @@ namespace TableTennisHistoric.Services
                     m.CompetitionCoefficient.SeasonId,
                     SeasonName = m.CompetitionCoefficient.Season.Name,
                     m.Stage.Name,
+                    m.CompetitionSupplement,
                     m.OpponentId,
                     OpponentFirstName = m.Opponent.First_name,
                     OpponentLastName = m.Opponent.Last_name,
@@ -191,6 +194,7 @@ namespace TableTennisHistoric.Services
                 CompetitionCoefficient = x.CompetitionCoefficient,
                 Competition = x.CompetitionName,
                 Stage_name = x.Name,
+                CompetitionSupplementName = x.CompetitionSupplement == null ? "" : x.CompetitionSupplement.Name,
                 Coefficient = x.CompetitionCoefficientValue,
                 SeasonId = x.SeasonId,
                 Season_name = x.SeasonName,
@@ -256,6 +260,7 @@ namespace TableTennisHistoric.Services
                 Competition = competition.Name,
                 Coefficient = competitionCoefficient != null ? competitionCoefficient.Coefficient : 0,
                 Stage_name = match.Stage != null ? match.Stage.Name : "",
+                CompetitionSupplementName = match.CompetitionSupplement.Name,
                 Opponent_first_name = Opponent != null ? OpponentDTO.First_name : "",
                 Opponent_last_name = Opponent != null ? OpponentDTO.Last_name : "",
                 Opponent_club = Club != null ? (Club.Name_abrev != "" ? Club.Name_abrev : Club.Name) : "",
@@ -412,7 +417,7 @@ namespace TableTennisHistoric.Services
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents, List<SelectListItem> Stages)> GetUpdateMatchSelectListsAsync(TableTennisMatch match)
+        public async Task<(List<SelectListItem> CompetitionCoefficients, List<SelectListItem> Opponents, List<SelectListItem> Stages, List<SelectListItem> CompetitionSupplements)> GetUpdateMatchSelectListsAsync(TableTennisMatch match)
         {
             var season = await _context.Season
                 .FirstOrDefaultAsync(s => s.Start_date <= match.Date_match && s.End_date >= match.Date_match);
@@ -448,7 +453,15 @@ namespace TableTennisHistoric.Services
                     Text = s.Name
                 }).ToListAsync();
 
-            return (competitionCoefficients, opponents, stages);
+            var competitionSupplements = await _context.CompetitionSupplement
+                .OrderBy(cs => cs.Name)
+                .Select(cs => new SelectListItem
+                {
+                    Value = cs.Id.ToString(),
+                    Text = cs.Name
+                }).ToListAsync();
+
+            return (competitionCoefficients, opponents, stages, competitionSupplements);
         }
 
         public List<string> ValidateSets(List<MatchSet> sets, TableTennisMatch.MatchResult result)
@@ -491,12 +504,13 @@ namespace TableTennisHistoric.Services
         }
 
         public async Task UpdateMatchAsync(TableTennisMatch match, int competitionCoefficientId, int? stageId,
-            int opponentId, DateTime dateMatch, decimal myPoints, decimal opponentPoints,
+            int? competitionSupplementId, int opponentId, DateTime dateMatch, decimal myPoints, decimal opponentPoints,
             TableTennisMatch.MatchResult result, string? comment, List<MatchSet> sets)
         {
             match.Date_match = DateOnly.FromDateTime(dateMatch);
             match.CompetitionCoefficientId = competitionCoefficientId;
             match.StageId = stageId;
+            match.CompetitionSupplementId = competitionSupplementId;
             match.OpponentId = opponentId;
             match.My_points_at_match = myPoints;
             match.Opponent_points_at_match = opponentPoints;
@@ -522,6 +536,7 @@ namespace TableTennisHistoric.Services
                 .Include(m => m.Opponent)
                     .ThenInclude(p => p.PlayerSeasons)
                         .ThenInclude(pc => pc.Club)
+                .Include(m => m.CompetitionSupplement)
                 .OrderByDescending(m => m.Date_match)
                 .ThenByDescending(m => m.Id)
                 .Select(m => new MatchDTO
@@ -529,6 +544,7 @@ namespace TableTennisHistoric.Services
                     Id = m.Id,
                     Date_of_match = m.Date_match,
                     Competition = m.CompetitionCoefficient.Competition.Name,
+                    CompetitionSupplementName = m.CompetitionSupplement.Name,
                     Coefficient = m.CompetitionCoefficient.Coefficient,
                     OpponnentId = m.OpponentId,
                     Opponent_first_name = m.Opponent.First_name,
@@ -579,12 +595,22 @@ namespace TableTennisHistoric.Services
                 })
                 .ToListAsync();
 
+            var competitionsSupplements = await _context.CompetitionSupplement
+                .OrderByDescending(s => s.Name)
+                .Select(cs => new SelectListItem
+                {
+                    Value = cs.Id.ToString(),
+                    Text = cs.Name
+                })
+                .ToListAsync();
+
             return new MatchesPageDataDTO
             {
                 MatchesDTO = matchesDTO,
                 CompetitionCoefficients = competitionCoefficients,
                 Opponents = opponents,
-                Stages = stages
+                Stages = stages,
+                CompetitionSupplements = competitionsSupplements
             };
         }
 
@@ -600,6 +626,7 @@ namespace TableTennisHistoric.Services
             {
                 Date_match = DateOnly.FromDateTime(dto.Date_match),
                 CompetitionCoefficientId = dto.CompetitionCoefficientId,
+                CompetitionSupplementId = dto.CompetitionSupplementId,
                 StageId = dto.StageId,
                 OpponentId = dto.OpponentId,
                 My_points_at_match = dto.My_points_at_match,

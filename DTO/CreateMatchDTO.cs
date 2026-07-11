@@ -6,6 +6,7 @@ namespace TableTennisHistoric.DTO
     {
         public DateTime Date_match { get; set; }
         public int CompetitionCoefficientId { get; set; }
+        public int? CompetitionSupplementId { get; set; }
         public int? StageId { get; set; }
         public int OpponentId { get; set; }
         public decimal My_points_at_match { get; set; }

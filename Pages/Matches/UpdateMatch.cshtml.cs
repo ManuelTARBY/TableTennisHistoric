@@ -19,6 +19,7 @@ namespace TableTennisHistoric.Pages.Matches
         public List<SelectListItem> CompetitionCoefficients { get; set; } = new();
         public List<SelectListItem> Opponents { get; set; } = new();
         public IEnumerable<SelectListItem> Stages { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> CompetitionSupplements { get; set; } = new List<SelectListItem>();
 
         [BindProperty]
         public InputModel Input { get; set; } = new();
@@ -36,6 +37,7 @@ namespace TableTennisHistoric.Pages.Matches
             [Required]
             public int OpponentId { get; set; }
             public int? StageId { get; set; } = null;
+            public int? CompetitionSupplementId { get; set; } = null;
 
             public decimal My_points_at_match { get; set; }
             public decimal Opponent_points_at_match { get; set; }
@@ -67,6 +69,7 @@ namespace TableTennisHistoric.Pages.Matches
             CompetitionCoefficients = lists.CompetitionCoefficients;
             Opponents = lists.Opponents;
             Stages = lists.Stages;
+            CompetitionSupplements = lists.CompetitionSupplements;
 
             Input = new InputModel
             {
@@ -74,6 +77,7 @@ namespace TableTennisHistoric.Pages.Matches
                 Date_match = match.Date_match.ToDateTime(TimeOnly.MinValue),
                 CompetitionCoefficientId = match.CompetitionCoefficientId,
                 StageId = match.StageId,
+                CompetitionSupplementId = match.CompetitionSupplementId,
                 OpponentId = match.OpponentId,
                 My_points_at_match = match.My_points_at_match,
                 Opponent_points_at_match = match.Opponent_points_at_match,
@@ -107,6 +111,7 @@ namespace TableTennisHistoric.Pages.Matches
             CompetitionCoefficients = lists.CompetitionCoefficients;
             Opponents = lists.Opponents;
             Stages = lists.Stages;
+            CompetitionSupplements = lists.CompetitionSupplements;
 
             // Filtrage des sets vides
             var filteredSets = Input.Sets
@@ -130,7 +135,7 @@ namespace TableTennisHistoric.Pages.Matches
             }
 
             await _matchService.UpdateMatchAsync(match, Input.CompetitionCoefficientId, Input.StageId,
-                Input.OpponentId, Input.Date_match, Input.My_points_at_match,
+                Input.CompetitionSupplementId, Input.OpponentId, Input.Date_match, Input.My_points_at_match,
                 Input.Opponent_points_at_match, Input.Result, Input.Comment,
                 filteredSets);
 

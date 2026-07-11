@@ -36,6 +36,15 @@
         </div>
 
         <div class="col">
+            <label>Niveau</label>
+            <select asp-for="Input.CompetitionSupplementId"
+                    asp-items="Model.CompetitionSupplements"
+                    class="form-select">
+                <option value="">-- Sélectionner un niveau --</option>
+            </select>
+        </div>
+
+        <div class="col">
             <label>Stade</label>
             <select asp-for="Input.StageId"
                     asp-items="Model.Stages"

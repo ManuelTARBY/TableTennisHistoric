@@ -19,6 +19,9 @@ namespace TableTennisHistoric.Models
         [JsonIgnore]
         public Player Opponent { get; set; } = null!;
 
+        public int? CompetitionSupplementId { get; set; } = null;
+        [JsonIgnore]
+        public CompetitionSupplement? CompetitionSupplement { get; set; } = null;
         public int? StageId { get; set; } = null;
         [JsonIgnore]
         public Stage? Stage { get; set; } = null;

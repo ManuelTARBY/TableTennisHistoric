@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TableTennisHistoric.Datas;
 
@@ -11,9 +12,11 @@ using TableTennisHistoric.Datas;
 namespace TableTennisHistoric.Migrations
 {
     [DbContext(typeof(TableTennisHistoricDbContext))]
-    partial class TableTennisHistoricDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711202025_AddedCompetitionSupplementModel")]
+    partial class AddedCompetitionSupplementModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -240,8 +243,7 @@ namespace TableTennisHistoric.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 

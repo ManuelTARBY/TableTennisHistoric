@@ -191,26 +191,18 @@ else
         }
     </div>
 }
-@* @if (Model.DisplayWinDefeatPercentage)
-{
-    <div class="d-flex justify-content-center mb-4">
-        <div class="chart-container" style="max-width: 400px; width: 100%;">
-            <canvas id="victoryGauge"></canvas>
-        </div>
-    </div>
-}
-else
-{
-    <p class="text-muted">@Model.Matches.Count match@(Model.Matches.Count > 1 ? "s" : "") trouvé@(Model.Matches.Count > 1 ? "s" : "")</p>
-} *@
 
     @if (Model.Matches.Any())
     {
         string SeasonOfLastMatch = null;
-        <table class="table table-striped align-middle">
+        string competitionFullName = "";
+    <table class="table table-striped align-middle">
             <tbody>
             @foreach (var match in Model.Matches)
             {
+
+                competitionFullName = match.CompetitionSupplementName.Equals("") ? match.Competition : match.Competition + " (" + match.CompetitionSupplementName + ")";
+
                 if (SeasonOfLastMatch == null || !SeasonOfLastMatch.Equals(match.Season_name))
                 {
                 <thead class="table-secondary">
@@ -235,7 +227,7 @@ else
                 }
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
-                        <td>@match.Competition</td>
+                        <td>@competitionFullName</td>
                         <td>
                             <a asp-page="/OpponentsHistoric"
                                asp-route-SelectedOpponentId="@match.OpponnentId"
