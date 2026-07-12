@@ -741,7 +741,20 @@ namespace TableTennisHistoric.Services
 
             // Filtre compétition
             if (filter.CompetitionId.HasValue)
-                query = query.Where(m => m.CompetitionCoefficient.CompetitionId == filter.CompetitionId);
+            {
+                if (filter.CompetitionId.Value == -1)
+                {
+                    query = query.Where(m => m.CompetitionCoefficient.Competition.Name.Contains("Tournoi"));
+                }
+                else if (filter.CompetitionId.Value == -2)
+                {
+                    query = query.Where(m => m.CompetitionCoefficient.Competition.Name.Contains("Critérium"));
+                }
+                else
+                {
+                    query = query.Where(m => m.CompetitionCoefficient.CompetitionId == filter.CompetitionId);
+                }
+            }
 
             // Filtre club adversaire
             if (filter.ClubId.HasValue)

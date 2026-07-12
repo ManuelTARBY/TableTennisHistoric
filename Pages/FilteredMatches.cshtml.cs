@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using TableTennisHistoric.DTO;
+using TableTennisHistoric.Models;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
@@ -23,7 +26,7 @@ namespace TableTennisHistoric.Pages
 
         public List<MatchDTO> Matches { get; set; } = new();
         public SelectList Seasons { get; set; } = null!;
-        public SelectList Competitions { get; set; } = null!;
+        public List<SelectListItem> Competitions { get; set; } = null!;
         public SelectList Clubs { get; set; } = null!;
 
         [Microsoft.AspNetCore.Mvc.BindProperty(SupportsGet = true)]
@@ -118,7 +121,33 @@ namespace TableTennisHistoric.Pages
             Seasons = new SelectList(seasons?.OrderByDescending(s => s.Start_date), "Id", "Name");
 
             var competitions = await _competitionService.GetAllCompetitionAsync();
-            Competitions = new SelectList(competitions?.OrderBy(c => c.Name), "Id", "Name");
+
+            var groupTournois = new SelectListGroup { Name = "Tournois" };
+            var groupCriterium = new SelectListGroup { Name = "Critérium" };
+            var groupAutres = new SelectListGroup { Name = "Autres" };
+
+            Competitions = competitions.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name,
+                Group = c.Name.Contains("Tournoi", StringComparison.OrdinalIgnoreCase) ? groupTournois :
+                (c.Name.Contains("Critérium", StringComparison.OrdinalIgnoreCase)) ? groupCriterium : groupAutres
+            }).ToList();
+
+            // Ajouter l'option "Groupe Tournoi" globale à la liste
+            Competitions.Insert(0, new SelectListItem
+            {
+                Value = "-1",
+                Text = "Tous les tournois",
+                Group = groupTournois
+            });
+            // Ajouter l'option "Groupe Tournoi" globale à la liste
+            Competitions.Insert(1, new SelectListItem
+            {
+                Value = "-2",
+                Text = "Tous les tours de critérium",
+                Group = groupCriterium
+            });
 
             Clubs = await _clubService.GetClubsSelectListAsync();
         }

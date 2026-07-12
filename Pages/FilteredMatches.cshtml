@@ -194,14 +194,17 @@ else
 
     @if (Model.Matches.Any())
     {
-        string SeasonOfLastMatch = null;
-        string competitionFullName = "";
+    string SeasonOfLastMatch = null;
     <table class="table table-striped align-middle">
             <tbody>
             @foreach (var match in Model.Matches)
             {
 
-                competitionFullName = match.CompetitionSupplementName.Equals("") ? match.Competition : match.Competition + " (" + match.CompetitionSupplementName + ")";
+                string competitionFullName = match.Competition;
+                if (match.CompetitionSupplementName != null)
+                {
+                    competitionFullName = match.CompetitionSupplementName.Equals("") ? match.Competition : match.Competition + " (" + match.CompetitionSupplementName + ")";
+                }
 
                 if (SeasonOfLastMatch == null || !SeasonOfLastMatch.Equals(match.Season_name))
                 {
