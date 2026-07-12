@@ -727,6 +727,7 @@ namespace TableTennisHistoric.Services
             var query = _context.TableTennisMatch
                 .Include(m => m.CompetitionCoefficient)
                     .ThenInclude(cc => cc.Competition)
+                .Include(cs => cs.CompetitionSupplement)
                 .Include(m => m.CompetitionCoefficient)
                     .ThenInclude(cc => cc.Season)
                 .Include(m => m.Opponent)
@@ -755,6 +756,10 @@ namespace TableTennisHistoric.Services
                     query = query.Where(m => m.CompetitionCoefficient.CompetitionId == filter.CompetitionId);
                 }
             }
+
+            // Filtre niveau de compétition
+            if (filter.CompetitionSupplementId.HasValue)
+                query = query.Where(cs => cs.CompetitionSupplementId == filter.CompetitionSupplementId);
 
             // Filtre club adversaire
             if (filter.ClubId.HasValue)
@@ -824,6 +829,7 @@ namespace TableTennisHistoric.Services
                 Id = m.Id,
                 Date_of_match = m.Date_match,
                 Competition = m.CompetitionCoefficient.Competition.Name,
+                CompetitionSupplementName = m.CompetitionSupplement == null ? "" : m.CompetitionSupplement.Name,
                 Coefficient = m.CompetitionCoefficient.Coefficient,
                 Season_name = m.CompetitionCoefficient.Season.Name,
                 OpponnentId = m.OpponentId,
@@ -848,8 +854,12 @@ namespace TableTennisHistoric.Services
                     SetNumber = s.SetNumber,
                     Player1Score = s.Player1Score,
                     Player2Score = s.Player2Score
-                }).ToList()
-            }).ToList();
+                })
+                .ToList()
+            })
+                .OrderByDescending(x => x.Date_of_match)
+                .ThenBy(x => x.Id)
+                .ToList();
         }
     }
 }

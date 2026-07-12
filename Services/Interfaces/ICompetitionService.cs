@@ -7,6 +7,7 @@ namespace TableTennisHistoric.Services.Interfaces
     {
         Task<List<CompetitionDTO>>? GetAllCompetitionDTOAsync();
         Task<List<Competition>>? GetAllCompetitionAsync();
+        Task<List<CompetitionSupplement>>? GetAllCompetitionSupplementAsync();
         Task<Competition?> GetCompetitionByIdAsync(int id);
         Task<CompetitionCoefficient?> GetCompetitionCoefficientByIdAsync(int id);
         Task<Competition> GetCompetitionByCompetitionCoefficientIdAsync(int id);

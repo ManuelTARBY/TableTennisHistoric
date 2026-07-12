@@ -6,6 +6,7 @@ namespace TableTennisHistoric.DTO
     {
         public int? SeasonId { get; set; }
         public int? CompetitionId { get; set; }
+        public int? CompetitionSupplementId { get; set; }
         public int? ClubId { get; set; }
         public DateOnly? DateFrom { get; set; }
         public DateOnly? DateTo { get; set; }

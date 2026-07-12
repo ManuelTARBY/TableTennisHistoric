@@ -27,6 +27,7 @@ namespace TableTennisHistoric.Pages
         public List<MatchDTO> Matches { get; set; } = new();
         public SelectList Seasons { get; set; } = null!;
         public List<SelectListItem> Competitions { get; set; } = null!;
+        public List<SelectListItem> CompetitionSupplements { get; set; } = null!;
         public SelectList Clubs { get; set; } = null!;
 
         [Microsoft.AspNetCore.Mvc.BindProperty(SupportsGet = true)]
@@ -83,6 +84,7 @@ namespace TableTennisHistoric.Pages
             // Détermine les filtres qui vont déclencher l'affichage du pourcentage de victoires/défaites
             if (Filter.SeasonId.HasValue
                 || Filter.CompetitionId.HasValue
+                || Filter.CompetitionSupplementId.HasValue
                 || Filter.ClubId.HasValue
                 || (Filter.DateFrom.HasValue && Filter.DateTo.HasValue)
                 || Filter.NbOfSets.HasValue
@@ -105,6 +107,7 @@ namespace TableTennisHistoric.Pages
         {
             return Filter.SeasonId.HasValue
                 || Filter.CompetitionId.HasValue
+                || Filter.CompetitionSupplementId.HasValue
                 || Filter.ClubId.HasValue
                 || Filter.DateFrom.HasValue
                 || Filter.DateTo.HasValue
@@ -150,6 +153,15 @@ namespace TableTennisHistoric.Pages
             });
 
             Clubs = await _clubService.GetClubsSelectListAsync();
+
+            var competitionSupplements = await _competitionService.GetAllCompetitionSupplementAsync();
+            CompetitionSupplements = competitionSupplements.Select(cs => new SelectListItem
+            {
+                Value = cs.Id.ToString(),
+                Text = cs.Name
+            })
+            .OrderBy(cc => cc.Text)
+            .ToList();
         }
     }
 }

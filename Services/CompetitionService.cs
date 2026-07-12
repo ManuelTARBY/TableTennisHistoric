@@ -35,6 +35,14 @@ namespace TableTennisHistoric.Services
                 .ToListAsync();
         }
 
+        public async Task<List<CompetitionSupplement>>? GetAllCompetitionSupplementAsync()
+        {
+            return await _context.CompetitionSupplement
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<Competition?> GetCompetitionByIdAsync(int id)
         {
             return await _context.Competition.FirstOrDefaultAsync(c => c.Id == id);

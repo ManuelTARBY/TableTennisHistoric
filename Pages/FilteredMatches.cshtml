@@ -27,6 +27,13 @@
             </div>
 
             <div class="col-md-4">
+                <label class="form-label fw-bold">Niveau</label>
+                <select asp-for="Filter.CompetitionSupplementId" asp-items="Model.CompetitionSupplements" class="form-select">
+                    <option value="">-- Tous --</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
                 <label class="form-label fw-bold">Club adversaire</label>
                 <select asp-for="Filter.ClubId" asp-items="Model.Clubs" class="form-select">
                     <option value="">-- Tous --</option>
@@ -201,7 +208,7 @@ else
             {
 
                 string competitionFullName = match.Competition;
-                if (match.CompetitionSupplementName != null)
+                if (!match.CompetitionSupplementName.Equals(""))
                 {
                     competitionFullName = match.CompetitionSupplementName.Equals("") ? match.Competition : match.Competition + " (" + match.CompetitionSupplementName + ")";
                 }
