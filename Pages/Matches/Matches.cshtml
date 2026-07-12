@@ -22,7 +22,6 @@
                 }
                 @foreach (var match in Model.MatchesDTO)
                 {
-                    string competitionFullName = match.CompetitionSupplementName.Equals("") ? @match.Competition : @match.Competition + " (" + match.CompetitionSupplementName + ")";
                     @if (match.Date_of_match != matchDate)
                     {
                         <tr class="gap-row">
@@ -32,8 +31,7 @@
                     }
                     <tr>
                         <td>@match.Date_of_match.ToShortDateString()</td>
-                        @* <td>@match.Competition</td> *@
-                        <td>@competitionFullName</td>
+                        <td>@match.Competition</td>
                         <td>
                             <a asp-page="/OpponentsHistoric" target="_blank"
                                asp-route-SelectedOpponentId="@match.OpponnentId"

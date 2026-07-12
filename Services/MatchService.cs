@@ -192,7 +192,8 @@ namespace TableTennisHistoric.Services
                 Id = x.Id,
                 Date_of_match = x.Date_match,
                 CompetitionCoefficient = x.CompetitionCoefficient,
-                Competition = x.CompetitionName,
+                //Competition = x.CompetitionName,
+                Competition = x.CompetitionSupplement == null ? x.CompetitionName : x.CompetitionName + " (" + x.CompetitionSupplement.Name + ")",
                 Stage_name = x.Name,
                 CompetitionSupplementName = x.CompetitionSupplement == null ? "" : x.CompetitionSupplement.Name,
                 Coefficient = x.CompetitionCoefficientValue,
@@ -545,8 +546,9 @@ namespace TableTennisHistoric.Services
                 {
                     Id = m.Id,
                     Date_of_match = m.Date_match,
-                    Competition = m.CompetitionCoefficient.Competition.Name,
-                    CompetitionSupplementName = m.CompetitionSupplement == null ? "" : m.CompetitionSupplement.Name,
+                    //Competition = m.CompetitionCoefficient.Competition.Name,
+                    Competition = m.CompetitionSupplement == null ? m.CompetitionCoefficient.Competition.Name : m.CompetitionCoefficient.Competition.Name + " (" + m.CompetitionSupplement.Name + ")",
+                    //CompetitionSupplementName = m.CompetitionSupplement == null ? "" : m.CompetitionSupplement.Name,
                     Coefficient = m.CompetitionCoefficient.Coefficient,
                     OpponnentId = m.OpponentId,
                     Opponent_first_name = m.Opponent.First_name,
@@ -675,6 +677,7 @@ namespace TableTennisHistoric.Services
                 .Include(m => m.Opponent)
                     .ThenInclude(p => p.PlayerSeasons)
                         .ThenInclude(pc => pc.Club)
+                .Include(m => m.CompetitionSupplement)
                 .Include(m => m.Sets)
                 .OrderByDescending(m => m.Date_match)
                 .ThenByDescending(m => m.Id)
@@ -682,7 +685,8 @@ namespace TableTennisHistoric.Services
                 {
                     Id = m.Id,
                     Date_of_match = m.Date_match,
-                    Competition = m.CompetitionCoefficient.Competition.Name,
+                    //Competition = m.CompetitionCoefficient.Competition.Name,
+                    Competition = m.CompetitionSupplement == null ? m.CompetitionCoefficient.Competition.Name : m.CompetitionCoefficient.Competition.Name + " (" + m.CompetitionSupplement.Name + ")",
                     Coefficient = m.CompetitionCoefficient.Coefficient,
                     Opponent_first_name = m.Opponent.First_name,
                     Opponent_last_name = m.Opponent.Last_name,
@@ -828,7 +832,8 @@ namespace TableTennisHistoric.Services
             {
                 Id = m.Id,
                 Date_of_match = m.Date_match,
-                Competition = m.CompetitionCoefficient.Competition.Name,
+                //Competition = m.CompetitionCoefficient.Competition.Name,
+                Competition = m.CompetitionSupplement == null ? m.CompetitionCoefficient.Competition.Name : m.CompetitionCoefficient.Competition.Name + " (" + m.CompetitionSupplement.Name + ")",
                 CompetitionSupplementName = m.CompetitionSupplement == null ? "" : m.CompetitionSupplement.Name,
                 Coefficient = m.CompetitionCoefficient.Coefficient,
                 Season_name = m.CompetitionCoefficient.Season.Name,

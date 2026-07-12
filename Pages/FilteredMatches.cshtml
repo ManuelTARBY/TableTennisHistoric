@@ -206,13 +206,6 @@ else
             <tbody>
             @foreach (var match in Model.Matches)
             {
-
-                string competitionFullName = match.Competition;
-                if (!match.CompetitionSupplementName.Equals(""))
-                {
-                    competitionFullName = match.CompetitionSupplementName.Equals("") ? match.Competition : match.Competition + " (" + match.CompetitionSupplementName + ")";
-                }
-
                 if (SeasonOfLastMatch == null || !SeasonOfLastMatch.Equals(match.Season_name))
                 {
                 <thead class="table-secondary">
@@ -237,7 +230,7 @@ else
                 }
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
-                        <td>@competitionFullName</td>
+                        <td>@match.Competition</td>
                         <td>
                             <a asp-page="/OpponentsHistoric"
                                asp-route-SelectedOpponentId="@match.OpponnentId"

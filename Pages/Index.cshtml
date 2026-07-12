@@ -235,11 +235,9 @@
 
                 @{
                     DateOnly matchDate = matchDTO.Value.Count > 0 ? matchDTO.Value[0].Date_of_match : new DateOnly(2001, 1, 1);
-                    string competitionFullName;
                 }
                 @foreach (var match in matchDTO.Value)
                 {
-                    competitionFullName = match.CompetitionSupplementName.Equals("") ? @match.Competition : @match.Competition + " (" + match.CompetitionSupplementName + ")";
 
                     @if (match.Date_of_match != matchDate)
                     {
@@ -250,7 +248,7 @@
                     }
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
-                        <td>@competitionFullName</td>
+                        <td>@match.Competition</td>
                         <td>@(match.Stage_name ?? "")</td>
                         <td class="text-center">@match.Coefficient.ToString("0.##")</td>
                         <td>
