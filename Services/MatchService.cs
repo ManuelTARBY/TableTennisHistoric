@@ -546,9 +546,7 @@ namespace TableTennisHistoric.Services
                 {
                     Id = m.Id,
                     Date_of_match = m.Date_match,
-                    //Competition = m.CompetitionCoefficient.Competition.Name,
                     Competition = m.CompetitionSupplement == null ? m.CompetitionCoefficient.Competition.Name : m.CompetitionCoefficient.Competition.Name + " (" + m.CompetitionSupplement.Name + ")",
-                    //CompetitionSupplementName = m.CompetitionSupplement == null ? "" : m.CompetitionSupplement.Name,
                     Coefficient = m.CompetitionCoefficient.Coefficient,
                     OpponnentId = m.OpponentId,
                     Opponent_first_name = m.Opponent.First_name,
