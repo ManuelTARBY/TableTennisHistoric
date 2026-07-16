@@ -52,19 +52,26 @@ TableTennisHistoric/
 │   ├── ChampionshipDTO.cs  # Inclut ChampionshipMatchData, ChampionshipTeamResult, ChampionshipPageData
 │   ├── ClubDTO.cs
 │   ├── ClubsPageDataDTO.cs
+│   ├── CoefficientCompetitionEditDTO.cs
 │   ├── CompetitionDTO.cs
 │   ├── CompetitionsPageDataDTO.cs
+│   ├── CompetitionSupplementDTO.cs
 │   ├── CreateMatchDTO.cs
 │   ├── IndexDataDTO.cs
 │   ├── MatchDTO.cs
 │   ├── MatchesPageDataDTO.cs
+│   ├── MatchesFilterDTO.cs
 │   ├── PlayerDTO.cs
-	├── PlayerEditDTO.cs
+|	├── PlayerEditDTO.cs
 │   ├── PlayerSeasonDTO.cs
 │   ├── PlayerWithClubDTO.cs
 │   ├── RankingHistoryDTO.cs
+│   ├── SeasonCompetitionDTO.cs
 │   ├── SeasonDTO.cs
-│   └── SetDTO.cs
+│   ├── SeasonEditDTO.cs
+│   ├── SetDTO.cs
+│   ├── TableTennisMatchDTO.cs
+│   └── TeamDTO.cs
 ├── Migrations/             # Migrations Entity Framework Core
 ├── Models/                 # Entités de la base de données
 ├── Pages/                  # Pages Razor (UI + logique allégée)
@@ -72,19 +79,23 @@ TableTennisHistoric/
 │   │   ├── Create.cshtml   # Création et gestion des championnats
 │   │   └── Read.cshtml     # Consultation et saisie des scores
 │   ├── Matches/
-│   │   ├── CreateMatch.cshtml
+│   │   ├── CreateMatches.cshtml
+│   │   ├── FilteredMatches.cshtml
+│   │   ├── Matches.cshtml
 │   │   └── UpdateMatch.cshtml
 │   ├── Players/
-│   │   ├── Create.cshtml           # Création joueur et affiliation
+│   │   ├── Affiliate.cshtml        # Création affiliation
+│   │   ├── Create.cshtml           # Création joueur avec son affiliation dans la foulée
 │   │   ├── ManagePlayerSeason.cshtml  # Modification/suppression des affiliations
 │   │   └── RankingHistory.cshtml
+│   ├── Calculator.cshtml
 │   ├── Clubs.cshtml
 │   ├── Competitions.cshtml
+│   ├── Error.cshtml
 │   ├── Index.cshtml
-│   ├── Matches.cshtml
 │   ├── OpponentsHistoric.cshtml
-│   ├── Players.cshtml
-│   └── PointsCalculator.cshtml
+│   ├── Privacy.cshtml
+│   └── Seasons.cshtml
 ├── Services/               # Services métiers
 │   ├── Interfaces/         # Interfaces des services
 │   │   ├── IChampionshipService.cs
