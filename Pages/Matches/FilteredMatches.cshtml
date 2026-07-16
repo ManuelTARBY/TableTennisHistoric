@@ -201,16 +201,16 @@ else
 
     @if (Model.Matches.Any())
     {
-    string SeasonOfLastMatch = null;
+    string SeasonOfLastMatch = "";
     <table class="table table-striped align-middle">
             <tbody>
             @foreach (var match in Model.Matches)
             {
-                if (SeasonOfLastMatch == null || !SeasonOfLastMatch.Equals(match.Season_name))
+                if (SeasonOfLastMatch.Equals("") || !SeasonOfLastMatch.Equals(match.Season_name))
                 {
                 <thead class="table-secondary">
                     <tr>
-                        <th colspan="9" class="text-center fs-5 fw-bold py-3">
+                        <th colspan="10" class="text-center fs-5 fw-bold py-3">
                             <i class="bi bi-calendar3 me-2"></i>
                             @match.Season_name
                         </th>
@@ -218,6 +218,7 @@ else
                     <tr>
                         <th>Date</th>
                         <th>Compétition</th>
+                        <th>Stade</th>
                         <th>Adversaire</th>
                         <th>Club</th>
                         <th>Points adv.</th>
@@ -231,6 +232,7 @@ else
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
                         <td>@match.Competition</td>
+                        <td>@match.Stage_name</td>
                         <td>
                             <a asp-page="/OpponentsHistoric"
                                asp-route-SelectedOpponentId="@match.OpponnentId"
