@@ -27,7 +27,7 @@ namespace TableTennisHistoric.Pages
         public decimal CounterOfDefeat { get; set; } = 0;
         public decimal CounterOfWithdraw { get; set; } = 0;
 
-        public Dictionary<string, decimal?> RankingHistory { get; set; } = new();
+        public Dictionary<DateOnly, decimal?> RankingHistory { get; set; } = new();
         public int RankingMaxValue { get; set; }
 
         public async Task OnGetAsync()

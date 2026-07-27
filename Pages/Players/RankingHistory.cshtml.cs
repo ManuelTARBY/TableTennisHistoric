@@ -12,7 +12,7 @@ namespace TableTennisHistoric.Pages.Players
             _playerService = playerService;
         }
 
-        public Dictionary<string, decimal?> RankingHistory { get; set; } = new();
+        public Dictionary<DateOnly, decimal?> RankingHistory { get; set; } = new();
         public int RankingMaxValue { get; set; }
 
         public async Task OnGetAsync()

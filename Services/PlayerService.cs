@@ -185,15 +185,16 @@ namespace TableTennisHistoric.Services
                 .OrderBy(ps => ps.Season.Start_date)
                 .ToListAsync();
 
-            var rankingHistory = new Dictionary<string, decimal?>();
+            var rankingHistory = new Dictionary<DateOnly, decimal?>();
 
             foreach (var playerSeason in playerSeasons)
             {
-                rankingHistory.Add("Sept. 20" + playerSeason.Season.Start_date.Year.ToString()[^2..], playerSeason.Points_start ?? 0);
+                rankingHistory.Add(playerSeason.Season.Start_date, playerSeason.Points_start ?? 0);
 
                 if (DateOnly.FromDateTime(DateTime.Now) > playerSeason.Season.Start_date.AddMonths(4))
                 {
-                    rankingHistory.Add("Jan. 20" + playerSeason.Season.End_date.Year.ToString()[^2..], playerSeason.Points_middle ?? 0);
+                    DateOnly P2Date = new DateOnly(playerSeason.Season.End_date.Year, 01, 01);
+                    rankingHistory.Add(P2Date, playerSeason.Points_middle ?? 0);
                 }
             }
 

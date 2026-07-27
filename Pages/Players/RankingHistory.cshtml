@@ -18,7 +18,13 @@
     (() => {
     document.addEventListener("DOMContentLoaded", function () {
         const ctx = document.getElementById('pointsHistoryChart');
-        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RankingHistory.Keys))
+        const rawLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RankingHistory.Keys))
+
+        const labels = rawLabels.map(dateStr => {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }).replace(/[a-zà-ÿ]/i, (lettre) => lettre.toUpperCase());
+            });
+
         const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RankingHistory.Values))
         const minValue = 500;
         const rankingPointsMaxValue = @Model.RankingMaxValue
