@@ -33,16 +33,174 @@
 </div>
 @if (Model.SelectedOpponentId.HasValue)
 {
-<!-- Graphique de l'évolution des points dans le temps -->
-<h3 class="mb-3 text-center">Evolution dans le temps</h3>
-<canvas id="pointsHistoryChart" width="600" height="250"></canvas>
+    <!-- Graphique de l'évolution des points dans le temps -->
+    <h3 class="mb-3 text-center">Evolution dans le temps</h3>
+    <canvas id="pointsHistoryChart" width="600" height="250"></canvas>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-<!-- Graphique en courbe de l'évolution des points dans le temps -->
+    <!-- Graphique en courbe de l'évolution des points dans le temps -->
     <script>
+            (() => {
+                const ctx = document.getElementById('pointsHistoryChart');
+
+                        const rawLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                            Model.RankingHistory.Keys.Select(d => d.ToString("yyyy-MM-dd"))
+                            ));
+    const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                Model.RankingHistory.Values
+                ));
+
+    // Conversion en objets {x: date, y: valeur} pour la courbe
+        const lineData = rawLabels.map((dateStr, i) => ({
+        x: new Date(dateStr).getTime(), // timestamp numérique
+        y: values[i]
+    }));
+
+
+
+                // Données du nuage de points des matchs
+                        const scatterRaw = [
+        @foreach (var match in Model.Matches)
+                {
+                            var color = match.Result switch
+                            {
+                                        MatchDTO.MatchResult.V => "rgba(25, 135, 84, 0.8)",
+                                        MatchDTO.MatchResult.D => "rgba(220, 53, 69, 0.8)",
+                                        _ => "rgba(108, 117, 125, 0.8)"
+                            };
+                            <text>
+                            {
+                                x: "@match.Date_of_match.ToString("yyyy-MM-dd")",
+                                y: @match.My_points_at_match.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                backgroundColor: "@color",
+                                borderColor: "@color",
+                                result: "@match.Result"
+                            },
+                            </text>
+                }
+            ];
+
+            // Données de coordonnées uniquement pour Chart.js
+                    const scatterData = scatterRaw.map(d => ({
+                x: new Date(d.x).getTime(), // timestamp numérique
+                y: d.y
+            }));
+
+                const minValue = 500;
+                const rankingPointsMaxValue = @Model.RankingMaxValue;
+
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Classement',
+                                data: lineData,
+                                borderColor: 'rgba(13, 110, 253, 1)',
+                                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                                borderWidth: 2,
+                                parsing: false
+                            },
+                            {
+                                type: 'scatter',
+                                label: 'Matchs',
+                                data: scatterData,
+                                backgroundColor: scatterRaw.map(d => d.backgroundColor),
+                                borderColor: scatterRaw.map(d => d.borderColor),
+                                pointRadius: 6,
+                                pointHoverRadius: 10,
+                                borderWidth: 1,
+                                // parsing: false
+                            }
+                        ]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            },
+                            datalabels: {
+                                display: (context) => context.datasetIndex === 0,
+                                align: 'top',
+                                anchor: 'end',
+                                color: '#333',
+                                backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                                font: { weight: 'bold', size: 12 },
+                                formatter: function (value) {
+                                    if (value == null || value.y == null) return '';
+                                    if (Number.isInteger(value.y)) return value.y.toString();
+                                    return value.y.toFixed(2);
+                                }
+                            },
+                                    tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        if (context.datasetIndex === 1) {
+                            const raw = scatterRaw[context.dataIndex];
+                            const date = new Date(raw.x);
+                            const formattedDate = date.toLocaleDateString('fr-FR');
+                            const result = raw.result === 'V' ? 'Victoire'
+                                         : raw.result === 'D' ? 'Défaite'
+                                         : 'Forfait';
+                            return `${formattedDate} — ${raw.y} pts (${result})`;
+                        }
+                        const date = new Date(context.raw.x);
+                        return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+                            + ' : ' + context.raw.y;
+                    }
+                }
+            }
+                        },
+                        scales: {
+                                    x: {
+                type: 'time',
+                time: {
+                    unit: 'month',
+                    displayFormats: { month: 'MMM yy' },
+                    tooltipFormat: 'dd/MM/yyyy'
+                },
+                ticks: {
+                    // N'affiche que les ticks correspondant aux dates de la courbe
+                    source: 'data',
+                    callback: function (value) {
+                        const timestamp = value;
+                        // Vérifie si ce tick correspond à une date de lineData
+                        const isInLineData = lineData.some(d => {
+                            const lineDate = new Date(d.x);
+                            const tickDate = new Date(timestamp);
+                            return lineDate.getFullYear() === tickDate.getFullYear()
+                                && lineDate.getMonth() === tickDate.getMonth();
+                        });
+
+                        if (!isInLineData) return null; // masque le tick
+
+                        const date = new Date(timestamp);
+                        return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+                                   .replace(/^\w/, c => c.toUpperCase());
+                    }
+                }
+            },
+                            y: {
+                                min: minValue,
+                                max: rankingPointsMaxValue,
+                                beginAtZero: false
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            })();
+    </script>
+    @* <script>
         (() => {
 
             const ctx = document.getElementById('pointsHistoryChart');
@@ -110,7 +268,7 @@
             });
 
         })();
-    </script>
+    </script> *@
 }
 
 @if (Model.Matches != null && Model.Matches.Any() && Model.SelectedOpponentId.HasValue)
@@ -138,87 +296,87 @@
             {
                 if (SeasonOfLastMatch == null || SeasonOfLastMatch != match.Season_name)
                 {
-                    <thead class="table-secondary">
-                        <tr>
-                            <th colspan="9" class="text-center fs-5 fw-bold py-3">
-                                <i class="bi bi-calendar3 me-2"></i>
-                                    @match.Season_name
-                            </th>
-                        </tr>
-                        <tr class="table-light">
-                            <th>Date</th>
-                            <th>Compétition</th>
-                            <th>Club</th>
-                            <th>Mes points</th>
-                            <th>Points adversaire</th>
-                            <th>Diff.</th>
-                            <th>Résultat</th>
-                            <th>Sets</th>
-                            <th>Commentaire</th>
-                        </tr>
-                    </thead>
-                }
-                <tr title="@match.Comment">
-                    <td>@match.Date_of_match.ToShortDateString()</td>
-                    <td>@match.Competition</td>
-                    <td>@match.Opponent_club</td>
-                    <td>@match.My_points_at_match.ToString("0.##")</td>
-                    <td>@match.Opponent_points_at_match.ToString("0.##")</td>
-                    <td>
-                            @(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.##")
-                    </td>
-                    <td>
-                            @switch (match.Result)
-                            {
-                                case MatchDTO.MatchResult.V:
-                                <span class="badge bg-success fs-6">Victoire</span>
-                                    break;
-                                case MatchDTO.MatchResult.D:
-                                <span class="badge bg-danger fs-6">Défaite</span>
-                                    break;
-                                case MatchDTO.MatchResult.F:
-                                <span class="badge bg-secondary text-white fs-6">Forfait</span>
-                                    break;
-                            }
-                    </td>
-                    <td>
-                            @if (match.MatchSets != null)
-                            {
-                            <table class="sets-table">
-                                <tr>
-                                        @{
-                                            foreach (var set in match.MatchSets)
-                                            {
-                                            <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
-                                                    @set.Player1Score
-                                            </td>
-                                            }
-                                        }
-                                </tr>
-                                <tr>
-                                        @{
-                                            foreach (var set in match.MatchSets)
-                                            {
-                                            <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
-                                                    @set.Player2Score
-                                            </td>
-                                            }
-                                        }
-                                </tr>
-                            </table>
-                            }
-                    </td>
-                    <td class="align-middle">
-                        @if (!string.IsNullOrEmpty(match.Comment))
-                        {
-                            <i class="bi bi-chat-square-text-fill text-warning"
-                               data-bs-toggle="tooltip">
-                            </i>
-                        }
-                    </td>
-                </tr>
-                SeasonOfLastMatch = match.Season_name;
+                <thead class="table-secondary">
+                    <tr>
+                        <th colspan="9" class="text-center fs-5 fw-bold py-3">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            @match.Season_name
+                        </th>
+                    </tr>
+                    <tr class="table-light">
+                        <th>Date</th>
+                        <th>Compétition</th>
+                        <th>Club</th>
+                        <th>Mes points</th>
+                        <th>Points adversaire</th>
+                        <th>Diff.</th>
+                        <th>Résultat</th>
+                        <th>Sets</th>
+                        <th>Commentaire</th>
+                    </tr>
+                </thead>
             }
+            <tr title="@match.Comment">
+                <td>@match.Date_of_match.ToShortDateString()</td>
+                <td>@match.Competition</td>
+                <td>@match.Opponent_club</td>
+                <td>@match.My_points_at_match.ToString("0.##")</td>
+                <td>@match.Opponent_points_at_match.ToString("0.##")</td>
+                <td>
+                    @(match.Point_difference > 0 ? "+" : "")@match.Point_difference.ToString("0.##")
+                </td>
+                <td>
+                    @switch (match.Result)
+                    {
+                        case MatchDTO.MatchResult.V:
+                            <span class="badge bg-success fs-6">Victoire</span>
+                            break;
+                        case MatchDTO.MatchResult.D:
+                            <span class="badge bg-danger fs-6">Défaite</span>
+                            break;
+                        case MatchDTO.MatchResult.F:
+                            <span class="badge bg-secondary text-white fs-6">Forfait</span>
+                            break;
+                    }
+                </td>
+                <td>
+                    @if (match.MatchSets != null)
+                    {
+                        <table class="sets-table">
+                            <tr>
+                                @{
+                                    foreach (var set in match.MatchSets)
+                                    {
+                                        <td class="columnSet @(set.Player1Score > set.Player2Score ? "bg-success text-white" : "bg-secondary text-white")">
+                                            @set.Player1Score
+                                        </td>
+                                    }
+                                }
+                            </tr>
+                            <tr>
+                                @{
+                                    foreach (var set in match.MatchSets)
+                                    {
+                                        <td class="columnSet @(set.Player2Score > set.Player1Score ? "bg-danger text-white" : "bg-secondary text-white")">
+                                            @set.Player2Score
+                                        </td>
+                                    }
+                                }
+                            </tr>
+                        </table>
+                    }
+                </td>
+                <td class="align-middle">
+                    @if (!string.IsNullOrEmpty(match.Comment))
+                    {
+                        <i class="bi bi-chat-square-text-fill text-warning"
+                           data-bs-toggle="tooltip">
+                        </i>
+                    }
+                </td>
+            </tr>
+            SeasonOfLastMatch = match.Season_name;
+        }
         </tbody>
     </table>
 }
@@ -233,13 +391,13 @@ else if (Model.SelectedOpponentId.HasValue)
 <!-- Graphique en camembert du ratio victoire/défaite -->
 <script>
     (() => {
-        
+
         const canvas = document.getElementById('victoryGauge');
 
         if (!canvas) {
             return;
         }
-        
+
         const victoryPercentage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VictoryPercentage));
         const ctxVictory = document.getElementById('victoryGauge').getContext('2d');
         const nbOfMatch = @((Model.Matches?.Count ?? 0));
