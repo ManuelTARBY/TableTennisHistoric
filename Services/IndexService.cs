@@ -158,7 +158,7 @@ namespace TableTennisHistoric.Services
                     {
                         decimal drift = currentDate.Month == 1 ? (season.p1_drift ?? 0) : (season.p2_drift ?? 0);
                         decimal pointsAfterDrift = Math.Max(Math.Round((decimal)data.MonthliesPointsOrdered[currentDate] - drift, 0, MidpointRounding.AwayFromZero), 500);
-                        
+
                         // Si on est en juillet, on n'affiche pas le classement mensuel mais le classement officiel (mensuel - dérive avec application de l'arrondi)
                         if (currentDate.Month == 7)
                         {
@@ -198,45 +198,53 @@ namespace TableTennisHistoric.Services
 
             if (data.MatchesDTO.Count > 0)
             {
-                foreach (var key in data.SortedMatchesDTO.Keys.ToList())
-                    data.SortedMatchesDTO[key] = data.SortedMatchesDTO[key].OrderByDescending(m => m.Date_of_match).ToList();
-
                 data.VictoryDistributionOrdered = victoryDistribution.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
                 data.DefeatDistributionOrdered = defeatDistribution.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 var sum = data.VictoryDistributionOrdered.ToDictionary(kv => kv.Key, kv => kv.Value + data.DefeatDistributionOrdered[kv.Key]);
                 data.VictoryDefeatMaxGauge = sum.Max(kv => kv.Value);
-
-                var maxLimitDay = DateOnly.FromDateTime(DateTime.Today);
-                if (maxLimitDay > DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1)))
-                //if (maxLimitDay > season.End_date)
-                    maxLimitDay = DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1));
-                    //maxLimitDay = new DateOnly(season.End_date.Year, 7, 1);
-
-                data.MonthlyPoints = data.MonthliesPointsOrdered[new DateOnly(maxLimitDay.Year, maxLimitDay.Month, 1)];
-
-                data.VirtualPoints = DateTime.Now.Month == 1 && DateOnly.FromDateTime(DateTime.Now) > season.Phase1_End_date
-                    ? data.MonthlyPoints + (data.SortedMatchesDTO.TryGetValue(maxLimitDay.Month, out var matches)
-                        ? matches.Where(m => m.Date_of_match > season.Phase1_End_date).Sum(m => m.Gain) : 0m)
-                    : data.MonthlyPoints + data.SortedMatchesDTO[maxLimitDay.Month].Sum(m => m.Gain);
-
-                data.MonthLabels = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= maxLimitDay)
-                    .Select(kv => CultureInfo.GetCultureInfo("fr-FR").TextInfo.ToTitleCase(kv.Key.ToString("MMMM", CultureInfo.GetCultureInfo("fr-FR"))))
-                    .ToArray();
-
-                data.MonthValues = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= maxLimitDay)
-                    .Select(kv => kv.Value)
-                    .ToArray();
-
-                data.MonthliesPointsOrderedFiltered = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= maxLimitDay)
-                    .ToDictionary(kv => kv.Key, kv => kv.Value);
-
-                data.RankingMaxValue = (int)(Math.Ceiling(
-                    data.MonthValues.Where(v => v.HasValue).Select(v => v.Value).DefaultIfEmpty(500m).Max() / 10m) * 10m);
             }
+
+            foreach (var key in data.SortedMatchesDTO.Keys.ToList())
+                data.SortedMatchesDTO[key] = data.SortedMatchesDTO[key].OrderByDescending(m => m.Date_of_match).ToList();
+
+            var maxLimitDay = DateOnly.FromDateTime(DateTime.Today);
+
+            if (maxLimitDay > DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1)))
+                maxLimitDay = DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1));
+
+            if (maxLimitDay < DateOnly.FromDateTime(new DateTime(season.Start_date.Year, 9, 1)))
+                maxLimitDay = DateOnly.FromDateTime(new DateTime(season.Start_date.Year, 9, 1));
+
+            data.MonthlyPoints = data.MonthliesPointsOrdered[new DateOnly(maxLimitDay.Year, maxLimitDay.Month, 1)];
+
+            data.VirtualPoints = DateTime.Now.Month == 1 && DateOnly.FromDateTime(DateTime.Now) > season.Phase1_End_date
+                ? data.MonthlyPoints + (data.SortedMatchesDTO.TryGetValue(maxLimitDay.Month, out var matches)
+                    ? matches.Where(m => m.Date_of_match > season.Phase1_End_date).Sum(m => m.Gain) : 0m)
+                : data.MonthlyPoints + data.SortedMatchesDTO[maxLimitDay.Month].Sum(m => m.Gain);
+
+            data.MonthLabels = data.MonthliesPointsOrdered
+                .Where(kv => kv.Key <= maxLimitDay)
+                .Select(kv => CultureInfo.GetCultureInfo("fr-FR").TextInfo.ToTitleCase(kv.Key.ToString("MMMM", CultureInfo.GetCultureInfo("fr-FR"))))
+                .ToArray();
+
+            data.MonthValues = data.MonthliesPointsOrdered
+                .Where(kv => kv.Key <= maxLimitDay)
+                .Select(kv => kv.Value)
+                .ToArray();
+
+            if (data.MonthLabels.Length == 0)
+            {
+                data.MonthLabels = new string[] { CultureInfo.GetCultureInfo("fr-FR").TextInfo.ToTitleCase(season.Start_date.ToString("MMMM", CultureInfo.GetCultureInfo("fr-FR"))) };
+                data.MonthValues = new decimal?[] { data.MonthlyPoints };
+            }
+
+            data.MonthliesPointsOrderedFiltered = data.MonthliesPointsOrdered
+                .Where(kv => kv.Key <= maxLimitDay)
+                .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+            data.RankingMaxValue = (int)(Math.Ceiling(
+                data.MonthValues.Where(v => v.HasValue).Select(v => v.Value).DefaultIfEmpty(500m).Max() / 10m) * 10m);
 
             return data;
         }
