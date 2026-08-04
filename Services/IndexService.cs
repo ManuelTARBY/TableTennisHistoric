@@ -207,29 +207,31 @@ namespace TableTennisHistoric.Services
                 var sum = data.VictoryDistributionOrdered.ToDictionary(kv => kv.Key, kv => kv.Value + data.DefeatDistributionOrdered[kv.Key]);
                 data.VictoryDefeatMaxGauge = sum.Max(kv => kv.Value);
 
-                var today = DateOnly.FromDateTime(DateTime.Today);
-                if (today > season.End_date)
-                    today = new DateOnly(season.End_date.Year, 7, 1);
+                var maxLimitDay = DateOnly.FromDateTime(DateTime.Today);
+                if (maxLimitDay > DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1)))
+                //if (maxLimitDay > season.End_date)
+                    maxLimitDay = DateOnly.FromDateTime(new DateTime(season.End_date.Year, 7, 1));
+                    //maxLimitDay = new DateOnly(season.End_date.Year, 7, 1);
 
-                data.MonthlyPoints = data.MonthliesPointsOrdered[new DateOnly(today.Year, today.Month, 1)];
+                data.MonthlyPoints = data.MonthliesPointsOrdered[new DateOnly(maxLimitDay.Year, maxLimitDay.Month, 1)];
 
                 data.VirtualPoints = DateTime.Now.Month == 1 && DateOnly.FromDateTime(DateTime.Now) > season.Phase1_End_date
-                    ? data.MonthlyPoints + (data.SortedMatchesDTO.TryGetValue(today.Month, out var matches)
+                    ? data.MonthlyPoints + (data.SortedMatchesDTO.TryGetValue(maxLimitDay.Month, out var matches)
                         ? matches.Where(m => m.Date_of_match > season.Phase1_End_date).Sum(m => m.Gain) : 0m)
-                    : data.MonthlyPoints + data.SortedMatchesDTO[today.Month].Sum(m => m.Gain);
+                    : data.MonthlyPoints + data.SortedMatchesDTO[maxLimitDay.Month].Sum(m => m.Gain);
 
                 data.MonthLabels = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= today)
+                    .Where(kv => kv.Key <= maxLimitDay)
                     .Select(kv => CultureInfo.GetCultureInfo("fr-FR").TextInfo.ToTitleCase(kv.Key.ToString("MMMM", CultureInfo.GetCultureInfo("fr-FR"))))
                     .ToArray();
 
                 data.MonthValues = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= today)
+                    .Where(kv => kv.Key <= maxLimitDay)
                     .Select(kv => kv.Value)
                     .ToArray();
 
                 data.MonthliesPointsOrderedFiltered = data.MonthliesPointsOrdered
-                    .Where(kv => kv.Key <= today)
+                    .Where(kv => kv.Key <= maxLimitDay)
                     .ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 data.RankingMaxValue = (int)(Math.Ceiling(
