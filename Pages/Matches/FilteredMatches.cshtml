@@ -143,9 +143,82 @@
                 <canvas id="victoryGauge"></canvas>
             </div>
         </div>
-
         <div class="col-md-6">
+            <!-- Tableau des points gagnés/perdus -->
+            <div class="card p-3 shadow-sm mb-3">
+                <h5 class="mb-3">Résumé des points</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points gagnés :</span>
+                    <strong class="text-success">+@Model.TotalPointsWon.ToString("F3")</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Points perdus :</span>
+                    <strong class="text-danger">@Model.TotalPointsLost.ToString("F3")</strong>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between">
+                    <span>Bilan total :</span>
+                    <strong class="@((Model.TotalPointsWon + Model.TotalPointsLost) >= 0 ? "text-success" : "text-danger")">
+                        @((Model.TotalPointsWon + Model.TotalPointsLost).ToString("F3"))
+                    </strong>
+                </div>
+            </div>
+
+            <!-- Tableau des points adversaires -->
             <div class="card p-3 shadow-sm">
+                <h5 class="mb-3">Classement des adversaires</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points minimum :</span>
+                    <strong>@Model.OpponentPointsMin.ToString("0.###")</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points maximum :</span>
+                    <strong>@Model.OpponentPointsMax.ToString("0.###")</strong>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points moyens :</span>
+                    <strong>@Model.OpponentPointsAverage.ToString("0.###")</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Points médians :</span>
+                    <strong>@Model.OpponentPointsMedian.ToString("0.###")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <!-- Tableau des points adversaires -->
+            <div class="card p-3 shadow-sm">
+                <h5 class="mb-3">Classement des adversaires</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points minimum :</span>
+                    <strong>@Model.OpponentPointsMin.ToString("0.###")</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points maximum :</span>
+                    <strong>@Model.OpponentPointsMax.ToString("0.###")</strong>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Points moyens :</span>
+                    <strong>@Model.OpponentPointsAverage.ToString("0.###")</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Points médians :</span>
+                    <strong>@Model.OpponentPointsMedian.ToString("0.###")</strong>
+                </div>
+            </div>
+            
+        </div>
+        <div class="col-md-6">
+            <!-- Tableau des points gagnés/perdus -->
+            <div class="card p-3 shadow-sm mb-3">
                 <h5 class="mb-3">Résumé des points</h5>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Points gagnés :</span>
@@ -165,37 +238,9 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6 d-flex align-text-bottom">
-            <p class="text-muted">@Model.Matches.Count match@(Model.Matches.Count > 1 ? "s" : "") trouvé@(Model.Matches.Count > 1 ? "s" : "")</p>
-        </div>
-
-        @if (Model.Matches.Count > 0)
-        {
-        <div class="col-md-6">
-            <div class="card p-3 shadow-sm">
-                <h5 class="mb-3">Résumé des points</h5>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Points gagnés :</span>
-                    <strong class="text-success">+@Model.TotalPointsWon.ToString("F3")</strong>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <span>Points perdus :</span>
-                    <strong class="text-danger">@Model.TotalPointsLost.ToString("F3")</strong>
-                </div>
-                <hr />
-                <div class="d-flex justify-content-between">
-                    <span>Bilan total :</span>
-                    <strong class="@((Model.TotalPointsWon + Model.TotalPointsLost) >= 0 ? "text-success" : "text-danger")">
-                        @((Model.TotalPointsWon + Model.TotalPointsLost).ToString("F3"))
-                    </strong>
-                </div>
-            </div>
-        </div>
-        }
+    
+    <div>
+        <p class="text-muted">@Model.Matches.Count match@(Model.Matches.Count > 1 ? "s" : "") trouvé@(Model.Matches.Count > 1 ? "s" : "")</p>
     </div>
 }
 

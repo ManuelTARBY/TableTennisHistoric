@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using TableTennisHistoric.DTO;
-using TableTennisHistoric.Models;
 using TableTennisHistoric.Services.Interfaces;
 
 namespace TableTennisHistoric.Pages
@@ -36,6 +33,10 @@ namespace TableTennisHistoric.Pages
         public decimal? VictoryPercentage { get; set; } = 0;
         public decimal TotalPointsWon { get; set; } = 0;
         public decimal TotalPointsLost { get; set; } = 0;
+        public decimal OpponentPointsMin { get; set; } = 0;
+        public decimal OpponentPointsMax { get; set; } = 0;
+        public decimal OpponentPointsAverage { get; set; } = 0;
+        public decimal OpponentPointsMedian { get; set; } = 0;
 
 
         public async Task OnGetAsync()
@@ -59,6 +60,29 @@ namespace TableTennisHistoric.Pages
             if (DisplayWinDefeatPercentage)
             {
                 VictoryPercentage = CalculateVictoryPercentage();
+            }
+
+            // Calcul des points moyens, min, max et médiane des adversaires
+            if (Matches.Count > 0)
+            {
+                var points = Matches
+                    .Where(m => m.Result != MatchDTO.MatchResult.F)
+                    .Select(m => m.Opponent_points_at_match)
+                    .OrderBy(p => p)
+                    .ToList();
+
+                if (points.Count > 0)
+                {
+                    OpponentPointsMin = points.First();
+                    OpponentPointsMax = points.Last();
+                    OpponentPointsAverage = Math.Round(points.Average(), 3);
+
+                    // Médiane
+                    int mid = points.Count / 2;
+                    OpponentPointsMedian = points.Count % 2 == 0
+                        ? Math.Round((points[mid - 1] + points[mid]) / 2, 3)
+                        : Math.Round(points[mid], 3);
+                }
             }
         }
 
