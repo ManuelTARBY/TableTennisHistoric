@@ -564,6 +564,15 @@ namespace TableTennisHistoric.Services
 
             var currentSeason = await _seasonService.GetCurrentSeasonAsync();
 
+            var competitions = await _context.Competition
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
+
             var competitionCoefficients = currentSeason != null
                 ? await _context.CompetitionCoefficient
                     .Include(cc => cc.Competition)
@@ -610,6 +619,7 @@ namespace TableTennisHistoric.Services
             {
                 MatchesDTO = matchesDTO,
                 CompetitionCoefficients = competitionCoefficients,
+                Competitions = competitions,
                 Opponents = opponents,
                 Stages = stages,
                 CompetitionSupplements = competitionsSupplements

@@ -43,6 +43,14 @@ namespace TableTennisHistoric.Services
                 .ToListAsync();
         }
 
+        public async Task<CompetitionCoefficient?>? GetCompetitionCoefficientByCompetitionAndSeasonAsync(int competitionId, int seasonId)
+        {
+            return await _context.CompetitionCoefficient
+                .Where(cc => cc.CompetitionId == competitionId && cc.SeasonId == seasonId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Competition?> GetCompetitionByIdAsync(int id)
         {
             return await _context.Competition.FirstOrDefaultAsync(c => c.Id == id);

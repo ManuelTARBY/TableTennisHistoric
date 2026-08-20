@@ -79,13 +79,13 @@
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Input.CompetitionCoefficientId" class="form-label fw-bold">Compétition</label>
-                <select asp-for="Input.CompetitionCoefficientId"
-                        asp-items="Model.CompetitionCoefficients"
+                <label asp-for="Input.CompetitionId" class="form-label fw-bold">Compétition</label>
+                <select asp-for="Input.CompetitionId"
+                        asp-items="Model.Competitions"
                         class="form-select">
                     <option value="">-- Sélectionner une compétition --</option>
                 </select>
-                <span asp-validation-for="Input.CompetitionCoefficientId" class="text-danger"></span>
+                <span asp-validation-for="Input.CompetitionId" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">

@@ -11,14 +11,19 @@ namespace TableTennisHistoric.Pages
     public class MatchesModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly ISeasonService _seasonService;
+        private readonly ICompetitionService _competitionService;
 
-        public MatchesModel(IMatchService matchService)
+        public MatchesModel(IMatchService matchService, ISeasonService seasonService, ICompetitionService competitionService)
         {
             _matchService = matchService;
+            _seasonService = seasonService;
+            _competitionService = competitionService;
         }
 
         public List<MatchDTO> MatchesDTO { get; set; } = new();
         public IEnumerable<SelectListItem> CompetitionCoefficients { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> Competitions { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> CompetitionSupplements { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Stages { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Opponents { get; set; } = new List<SelectListItem>();
@@ -33,6 +38,8 @@ namespace TableTennisHistoric.Pages
 
             [Required]
             public int CompetitionCoefficientId { get; set; }
+            [Required]
+            public int CompetitionId { get; set; }
             public int? CompetitionSupplementId { get; set; } = null;
             public int? StageId { get; set; } = null;
 
@@ -75,10 +82,25 @@ namespace TableTennisHistoric.Pages
                 return Page();
             }
 
+            var season = await _seasonService.GetSeasonByDateAsync(DateOnly.FromDateTime(Input.Date_match));
+            var coefficientCompetition = await _competitionService.GetCompetitionCoefficientByCompetitionAndSeasonAsync(Input.CompetitionId, season.Id);
+
+            if (coefficientCompetition == null)
+            {
+                CompetitionCoefficient newCoefficientCompetition = new()
+                {
+                    CompetitionId = Input.CompetitionId,
+                    SeasonId = season.Id
+                };
+                await _competitionService.CreateCompetitionCoefficientAsync(newCoefficientCompetition);
+
+                coefficientCompetition = newCoefficientCompetition;
+            }
+
             var success = await _matchService.CreateMatchWithSetsAsync(new CreateMatchDTO
             {
                 Date_match = Input.Date_match,
-                CompetitionCoefficientId = Input.CompetitionCoefficientId,
+                CompetitionCoefficientId = coefficientCompetition.Id,
                 CompetitionSupplementId = Input.CompetitionSupplementId,
                 StageId = Input.StageId,
                 OpponentId = Input.OpponentId,
@@ -109,6 +131,7 @@ namespace TableTennisHistoric.Pages
             var data = await _matchService.GetMatchesPageDataAsync();
             MatchesDTO = data.MatchesDTO;
             CompetitionCoefficients = data.CompetitionCoefficients;
+            Competitions = data.Competitions;
             CompetitionSupplements = data.CompetitionSupplements;
             Opponents = data.Opponents;
             Stages = data.Stages;
