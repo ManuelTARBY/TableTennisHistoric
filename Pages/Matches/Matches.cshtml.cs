@@ -83,6 +83,14 @@ namespace TableTennisHistoric.Pages
             }
 
             var season = await _seasonService.GetSeasonByDateAsync(DateOnly.FromDateTime(Input.Date_match));
+
+            if (season == null)
+            {
+                ModelState.AddModelError("Input.Date_match", "Aucune saison n'existe pour la date saisie.");
+                await LoadSelectListsAsync();
+                return Page();
+            }
+
             var coefficientCompetition = await _competitionService.GetCompetitionCoefficientByCompetitionAndSeasonAsync(Input.CompetitionId, season.Id);
 
             if (coefficientCompetition == null)
