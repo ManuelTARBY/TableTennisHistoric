@@ -98,7 +98,8 @@ namespace TableTennisHistoric.Pages
                 CompetitionCoefficient newCoefficientCompetition = new()
                 {
                     CompetitionId = Input.CompetitionId,
-                    SeasonId = season.Id
+                    SeasonId = season.Id,
+                    Coefficient = 0.0m // Par défaut
                 };
                 await _competitionService.CreateCompetitionCoefficientAsync(newCoefficientCompetition);
 
