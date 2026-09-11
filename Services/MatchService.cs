@@ -98,6 +98,7 @@ namespace TableTennisHistoric.Services
                     MyPoints = m.My_points_at_match,
                     Point_Difference = m.Opponent_points_at_match - m.My_points_at_match,
                     Result = m.Result,
+                    Points_won = m.Points_won,
                     Comment = m.Comment,
                     Sets = m.Sets.Select(s => new { s.SetNumber, s.Player1Score, s.Player2Score }).ToList(),
 
@@ -130,6 +131,7 @@ namespace TableTennisHistoric.Services
                 Point_difference = x.Point_Difference,
                 Comment = x.Comment,
                 Result = (MatchDTO.MatchResult)x.Result,
+                Points_won = x.Points_won,
                 MatchSets = x.Sets.Select(s => new SetDTO
                 {
                     SetNumber = s.SetNumber,
@@ -140,7 +142,7 @@ namespace TableTennisHistoric.Services
 
             foreach (var dto in matchesDto)
             {
-                dto.Gain = ComputeDTO(dto, dto.Coefficient);
+                dto.Points_won = ComputeDTO(dto, dto.Coefficient);
             }
 
             return matchesDto;
@@ -169,6 +171,7 @@ namespace TableTennisHistoric.Services
                     MyPoints = m.My_points_at_match,
                     Point_Difference = m.Opponent_points_at_match - m.My_points_at_match,
                     m.Result,
+                    m.Points_won,
                     m.Comment,
 
                     Sets = m.Sets == null ? null
@@ -209,6 +212,7 @@ namespace TableTennisHistoric.Services
                 Point_difference = x.Point_Difference,
                 Comment = x.Comment,
                 Result = (MatchDTO.MatchResult)x.Result,
+                Points_won = x.Points_won,
                 MatchSets = x.Sets.Select(s => new SetDTO
                 {
                     SetNumber = s.SetNumber,
@@ -216,11 +220,6 @@ namespace TableTennisHistoric.Services
                     Player2Score = s.Player2Score
                 }).ToList()
             }).ToList();
-
-            foreach (var dto in matchesDto)
-            {
-                dto.Gain = ComputeDTO(dto, dto.Coefficient);
-            }
 
             return matchesDto;
         }
@@ -270,8 +269,8 @@ namespace TableTennisHistoric.Services
                 Point_difference = match.Opponent_points_at_match - match.My_points_at_match,
                 Comment = match.Comment,
                 Result = (MatchDTO.MatchResult)match.Result,
+                Points_won = match.Points_won,
                 MatchSets = matchSetDTOs,
-                Gain = Compute(match, competitionCoefficient)
             };
 
             return matchDTO;
@@ -506,28 +505,12 @@ namespace TableTennisHistoric.Services
             return errors;
         }
 
-        public async Task UpdateMatchAsync(TableTennisMatch match, int competitionCoefficientId, int? stageId,
-            int? competitionSupplementId, int opponentId, DateTime dateMatch, decimal myPoints, decimal opponentPoints,
-            TableTennisMatch.MatchResult result, string? comment, List<MatchSet> sets)
+        public async Task UpdateMatchAsync(TableTennisMatch match)
         {
-            match.Date_match = DateOnly.FromDateTime(dateMatch);
-            match.CompetitionCoefficientId = competitionCoefficientId;
-            match.StageId = stageId;
-            match.CompetitionSupplementId = competitionSupplementId;
-            match.OpponentId = opponentId;
-            match.My_points_at_match = myPoints;
-            match.Opponent_points_at_match = opponentPoints;
-            match.Result = result;
-            match.Comment = comment;
-
-            if (sets.Count >= 3)
-            {
-                _context.MatchSet.RemoveRange(match.Sets ?? Enumerable.Empty<MatchSet>());
-                match.Sets = sets;
-            }
-
+            _context.TableTennisMatch.Update(match);
             await _context.SaveChangesAsync();
         }
+
 
         public async Task<MatchesPageDataDTO> GetMatchesPageDataAsync()
         {
@@ -557,6 +540,7 @@ namespace TableTennisHistoric.Services
                         .Select(pc => pc.Club.Name)
                         .FirstOrDefault(),
                     Opponent_points_at_match = m.Opponent_points_at_match,
+                    Points_won = m.Points_won,
                     Comment = m.Comment,
                     Result = Enum.Parse<MatchDTO.MatchResult>(m.Result.ToString())
                 })
@@ -644,6 +628,7 @@ namespace TableTennisHistoric.Services
                 My_points_at_match = dto.My_points_at_match,
                 Opponent_points_at_match = dto.Opponent_points_at_match,
                 Result = dto.Result,
+                Points_won = ComputeFromCalculator(dto.My_points_at_match, dto.Opponent_points_at_match, competitionCoefficient.Coefficient, dto.Result == TableTennisMatch.MatchResult.V),
                 CompetitionCoefficient = competitionCoefficient,
                 Opponent = opponent,
                 Comment = dto.Comment
@@ -693,7 +678,6 @@ namespace TableTennisHistoric.Services
                 {
                     Id = m.Id,
                     Date_of_match = m.Date_match,
-                    //Competition = m.CompetitionCoefficient.Competition.Name,
                     Competition = m.CompetitionSupplement == null ? m.CompetitionCoefficient.Competition.Name : m.CompetitionCoefficient.Competition.Name + " (" + m.CompetitionSupplement.Name + ")",
                     Coefficient = m.CompetitionCoefficient.Coefficient,
                     Opponent_first_name = m.Opponent.First_name,
@@ -712,6 +696,7 @@ namespace TableTennisHistoric.Services
                         : m.Result == TableTennisMatch.MatchResult.D
                             ? MatchDTO.MatchResult.D
                             : MatchDTO.MatchResult.F,
+                    Points_won = m.Points_won,
                     MatchSets = m.Sets
                         .OrderBy(s => s.SetNumber)
                         .Select(s => new SetDTO
@@ -859,10 +844,7 @@ namespace TableTennisHistoric.Services
                 Point_difference = m.Opponent_points_at_match - m.My_points_at_match,
                 Comment = m.Comment,
                 Result = (MatchDTO.MatchResult)m.Result,
-                Gain = ComputeCore(
-                    m.Opponent_points_at_match - m.My_points_at_match,
-                    m.Result == TableTennisMatch.MatchResult.V,
-                    m.CompetitionCoefficient.Coefficient),
+                Points_won = m.Points_won,
                 MatchSets = m.Sets.OrderBy(s => s.SetNumber).Select(s => new SetDTO
                 {
                     SetNumber = s.SetNumber,

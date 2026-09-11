@@ -53,8 +53,8 @@ namespace TableTennisHistoric.Pages
                 Matches = Matches.OrderByDescending(m => m.Date_of_match).ThenBy(m => m.Id).ToList();
             }
 
-            TotalPointsWon = Matches.Where(m => m.Result == MatchDTO.MatchResult.V).Sum(m => m.Gain);
-            TotalPointsLost = Matches.Where(m => m.Result == MatchDTO.MatchResult.D).Sum(m => m.Gain);
+            TotalPointsWon = Matches.Where(m => m.Result == MatchDTO.MatchResult.V).Sum(m => m.Points_won);
+            TotalPointsLost = Matches.Where(m => m.Result == MatchDTO.MatchResult.D).Sum(m => m.Points_won);
 
             DisplayWinDefeatPercentage = CheckForDisplayWinDefeatPercentage();
             if (DisplayWinDefeatPercentage)

@@ -119,18 +119,18 @@ namespace TableTennisHistoric.Services
 
                 data.SortedMatchesDTO[match.Date_of_match.Month].Add(match);
 
-                data.MonthlyPoints += match.Gain;
+                data.MonthlyPoints += match.Points_won;
                 DateOnly aMonthLater = match.Date_of_match.AddMonths(1);
                 DateOnly nextMonth = new DateOnly(aMonthLater.Year, aMonthLater.Month, 1);
 
                 if (match.Date_of_match.Month == 1 && match.Date_of_match <= season.Phase1_End_date)
                 {
                     DateOnly aDate = new DateOnly(match.Date_of_match.Year, match.Date_of_match.Month, 1);
-                    data.MonthliesPointsOrdered[aDate] += match.Gain;
+                    data.MonthliesPointsOrdered[aDate] += match.Points_won;
                 }
                 else
                 {
-                    data.MonthliesPointsOrdered[nextMonth] += match.Gain;
+                    data.MonthliesPointsOrdered[nextMonth] += match.Points_won;
                 }
 
                 _matchService.DetermineTypeOfResult(match, ref detailedResults);
@@ -220,8 +220,8 @@ namespace TableTennisHistoric.Services
 
             data.VirtualPoints = DateTime.Now.Month == 1 && DateOnly.FromDateTime(DateTime.Now) > season.Phase1_End_date
                 ? data.MonthlyPoints + (data.SortedMatchesDTO.TryGetValue(maxLimitDay.Month, out var matches)
-                    ? matches.Where(m => m.Date_of_match > season.Phase1_End_date).Sum(m => m.Gain) : 0m)
-                : data.MonthlyPoints + data.SortedMatchesDTO[maxLimitDay.Month].Sum(m => m.Gain);
+                    ? matches.Where(m => m.Date_of_match > season.Phase1_End_date).Sum(m => m.Points_won) : 0m)
+                : data.MonthlyPoints + data.SortedMatchesDTO[maxLimitDay.Month].Sum(m => m.Points_won);
 
             data.MonthLabels = data.MonthliesPointsOrdered
                 .Where(kv => kv.Key <= maxLimitDay)

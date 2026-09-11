@@ -23,7 +23,9 @@ namespace TableTennisHistoric.Services
 
         public async Task<List<Season>?> GetAllSeasonsAsync()
         {
-            return await _context.Season.OrderBy(s => s.Name).ToListAsync();
+            return await _context.Season
+                .OrderByDescending(s => s.Start_date)
+                .ToListAsync();
         }
 
         public async Task<Season?> GetSeasonByDateAsync(DateOnly date)

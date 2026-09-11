@@ -307,7 +307,7 @@
                                 </table>
                             }
                         </td>
-                        <td>@(match.Gain > 0 ? "+" : "")@match.Gain.ToString("0.###")</td>
+                        <td>@(match.Points_won > 0 ? "+" : "")@match.Points_won.ToString("0.###")</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <a asp-page="/Matches/UpdateMatch" asp-route-id="@match.Id" class="btn btn-sm btn-outline-warning" title="Modifier le match">

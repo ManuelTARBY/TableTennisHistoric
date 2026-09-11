@@ -10,10 +10,12 @@ namespace TableTennisHistoric.Pages.Matches
     public class UpdateMatchModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly ICompetitionService _competitionService;
 
-        public UpdateMatchModel(IMatchService matchService)
+        public UpdateMatchModel(IMatchService matchService, ICompetitionService competitionService)
         {
             _matchService = matchService;
+            _competitionService = competitionService;
         }
 
         public List<SelectListItem> CompetitionCoefficients { get; set; } = new();
@@ -134,10 +136,21 @@ namespace TableTennisHistoric.Pages.Matches
                     return Page();
             }
 
-            await _matchService.UpdateMatchAsync(match, Input.CompetitionCoefficientId, Input.StageId,
-                Input.CompetitionSupplementId, Input.OpponentId, Input.Date_match, Input.My_points_at_match,
-                Input.Opponent_points_at_match, Input.Result, Input.Comment,
-                filteredSets);
+            match.Date_match = DateOnly.FromDateTime(Input.Date_match);
+            match.CompetitionCoefficientId = Input.CompetitionCoefficientId;
+            match.StageId = Input.StageId;
+            match.CompetitionSupplementId = Input.CompetitionSupplementId;
+            match.OpponentId = Input.OpponentId;
+            match.My_points_at_match = Input.My_points_at_match;
+            match.Opponent_points_at_match = Input.Opponent_points_at_match;
+            match.Result = Input.Result;
+            match.Comment = Input.Comment;
+
+            CompetitionCoefficient? competitionCoefficient = await _competitionService.GetCompetitionCoefficientByIdAsync(Input.CompetitionCoefficientId);
+
+            match.Points_won = _matchService.Compute(match, competitionCoefficient);
+
+            await _matchService.UpdateMatchAsync(match);
 
             return RedirectToPage("/Index");
         }

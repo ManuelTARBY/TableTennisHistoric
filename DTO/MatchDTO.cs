@@ -29,8 +29,8 @@ namespace TableTennisHistoric.DTO
         public string? CompetitionSupplementName { get; set; } = null;
         public enum MatchResult { V, D, F }
         public MatchResult Result { get; set; }
+        [Column(TypeName = "decimal(6,2)")]
+        public decimal Points_won { get; set; }
         public List<SetDTO>? MatchSets { get; set; }
-        [Column(TypeName = "decimal(4,2)")]
-        public decimal Gain { get; set; }
     }
 }

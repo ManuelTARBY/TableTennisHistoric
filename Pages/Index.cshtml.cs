@@ -71,7 +71,6 @@ namespace TableTennisHistoric.Pages
             var seasons = await _seasonService.GetAllSeasonsAsync();
 
             SeasonsSelectList = seasons
-                .OrderByDescending(s => s.Start_date)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -94,8 +93,12 @@ namespace TableTennisHistoric.Pages
                     var currentSeason = await _seasonService.GetCurrentSeasonAsync();
                     if (currentSeason == null)
                     {
-                        ShowSeasonModal = true;
-                        return;
+                        currentSeason = seasons.FirstOrDefault();
+                        if (currentSeason == null)
+                        {
+                            ShowSeasonModal = true;
+                            return;
+                        }
                     }
                     SelectedSeasonId = currentSeason.Id;
                     SeasonDTO = _seasonService.ConvertSeasonToSeasonDTO(currentSeason);
