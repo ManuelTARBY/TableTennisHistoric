@@ -124,6 +124,7 @@ namespace TableTennisHistoric.Pages
                 My_points_at_match = Input.My_points_at_match,
                 Opponent_points_at_match = Input.Opponent_points_at_match,
                 Result = Input.Result ?? TableTennisMatch.MatchResult.F,
+                Points_won = _matchService.ComputeFromCalculator(Input.My_points_at_match, Input.Opponent_points_at_match, coefficientCompetition.Coefficient, Input.Result == TableTennisMatch.MatchResult.V),
                 Comment = Input.Comment != "" ? Input.Comment : null,
                 SetMy = Input.SetMy,
                 SetOpp = Input.SetOpp
