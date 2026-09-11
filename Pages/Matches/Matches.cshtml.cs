@@ -92,6 +92,14 @@ namespace TableTennisHistoric.Pages
             }
 
             var coefficientCompetition = await _competitionService.GetCompetitionCoefficientByCompetitionAndSeasonAsync(Input.CompetitionId, season.Id);
+            var lastCoefficientCompetition = await _competitionService.GetLastCompetitionCoefficientByCompetitionAsync(Input.CompetitionId);
+
+            if (lastCoefficientCompetition == null)
+            {
+                ModelState.AddModelError("Input.CompetitionId", "Aucun coefficient n'existe pour la compétition sélectionnée.");
+                await LoadSelectListsAsync();
+                return Page();
+            }
 
             if (coefficientCompetition == null)
             {
@@ -99,7 +107,7 @@ namespace TableTennisHistoric.Pages
                 {
                     CompetitionId = Input.CompetitionId,
                     SeasonId = season.Id,
-                    Coefficient = 0.0m // Par défaut
+                    Coefficient = lastCoefficientCompetition.Coefficient // Par défaut
                 };
                 await _competitionService.CreateCompetitionCoefficientAsync(newCoefficientCompetition);
 
