@@ -40,6 +40,9 @@ namespace TableTennisHistoric.Models
             [Display(Name = "Forfait")] F
         }
 
+        [Column(TypeName = "decimal(6,2)")]
+        public decimal Points_won { get; set; }
+
         [Column(TypeName = "longtext")]
         public string? Comment { get; set; } = null;
 
