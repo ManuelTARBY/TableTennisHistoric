@@ -507,10 +507,56 @@ namespace TableTennisHistoric.Services
 
         public async Task UpdateMatchAsync(TableTennisMatch match)
         {
-            _context.TableTennisMatch.Update(match);
+            // 1. Charger le match et ses sets existants avec tracking
+            var existingMatch = await _context.TableTennisMatch
+                .Include(m => m.Sets)
+                .FirstOrDefaultAsync(m => m.Id == match.Id);
+
+            if (existingMatch == null) return;
+
+            // 2. Mettre à jour les propriétés du match principal
+            _context.Entry(existingMatch).CurrentValues.SetValues(match);
+
+            var incomingSets = match.Sets?.ToList() ?? new List<MatchSet>();
+
+            // 3. Supprimer uniquement les sets qui ne sont plus présents dans le nouveau match
+            var existingSetsToRemove = existingMatch.Sets
+                .Where(es => !incomingSets.Any(isSet => isSet.SetNumber == es.SetNumber))
+                .ToList();
+
+            foreach (var setToRemove in existingSetsToRemove)
+            {
+                _context.MatchSet.Remove(setToRemove);
+            }
+
+            // 4. Mettre à jour les sets existants ou ajouter les nouveaux
+            foreach (var incomingSet in incomingSets)
+            {
+                var existingSet = existingMatch.Sets
+                    .FirstOrDefault(es => es.SetNumber == incomingSet.SetNumber);
+
+                if (existingSet != null)
+                {
+                    // Le set existe déjà : on met à jour les scores
+                    existingSet.Player1Score = incomingSet.Player1Score;
+                    existingSet.Player2Score = incomingSet.Player2Score;
+                }
+                else
+                {
+                    // Le set n'existe pas : on l'ajoute à la collection
+                    existingMatch.Sets.Add(new MatchSet
+                    {
+                        MatchId = existingMatch.Id,
+                        SetNumber = incomingSet.SetNumber,
+                        Player1Score = incomingSet.Player1Score,
+                        Player2Score = incomingSet.Player2Score
+                    });
+                }
+            }
+
+            // 5. Sauvegarder en une seule transaction
             await _context.SaveChangesAsync();
         }
-
 
         public async Task<MatchesPageDataDTO> GetMatchesPageDataAsync()
         {

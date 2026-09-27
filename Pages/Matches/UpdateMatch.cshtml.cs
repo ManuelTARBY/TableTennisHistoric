@@ -150,6 +150,8 @@ namespace TableTennisHistoric.Pages.Matches
 
             match.Points_won = _matchService.Compute(match, competitionCoefficient);
 
+            match.Sets = filteredSets;
+
             await _matchService.UpdateMatchAsync(match);
 
             return RedirectToPage("/Index");

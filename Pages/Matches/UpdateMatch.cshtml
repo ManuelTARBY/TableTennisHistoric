@@ -214,7 +214,6 @@
             } else if (score2 > score1) {
                 input2.style.backgroundColor = '#d4edda';
             }
-            // égalité → pas de couleur
         });
     }
 
@@ -229,13 +228,6 @@
             input.addEventListener('input', highlightSetWinners);
             input.dataset.listenerAttached = 'true'; // on marque l'input
         });
-
-        // row1.querySelectorAll('input[type="number"]').forEach(input => {
-        //     input.addEventListener('input', highlightSetWinners);
-        // });
-        // row2.querySelectorAll('input[type="number"]').forEach(input => {
-        //     input.addEventListener('input', highlightSetWinners);
-        // });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
