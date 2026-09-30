@@ -157,7 +157,7 @@ namespace TableTennisHistoric.Services
                     if (currentDate.Month == 1 || currentDate.Month == 7)
                     {
                         decimal drift = currentDate.Month == 1 ? (season.p1_drift ?? 0) : (season.p2_drift ?? 0);
-                        decimal pointsAfterDrift = Math.Max(Math.Round((decimal)data.MonthliesPointsOrdered[currentDate] - drift, 0, MidpointRounding.AwayFromZero), 500);
+                        decimal pointsAfterDrift = Math.Max(Math.Ceiling((decimal)data.MonthliesPointsOrdered[currentDate] - drift), 500);
 
                         // Si on est en juillet, on n'affiche pas le classement mensuel mais le classement officiel (mensuel - dérive avec application de l'arrondi)
                         if (currentDate.Month == 7)
