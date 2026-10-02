@@ -84,12 +84,18 @@
 </div>
 
 <!-- Tableau de modification -->
-<table class="table table-striped align-middle">
+<table id="playersTable" class="table table-striped align-middle">
     <thead class="table-light">
         <tr>
-            <th>Prénom</th>
-            <th>Nom</th>
-            <th>Licence</th>
+            <th class="sortable" data-col="0" data-type="text" role="button" aria-sort="none">
+                Prénom <i class="bi bi-arrow-down-up sort-icon text-muted"></i>
+            </th>
+            <th class="sortable" data-col="1" data-type="text" role="button" aria-sort="none">
+                Nom <i class="bi bi-arrow-down-up sort-icon text-muted"></i>
+            </th>
+            <th class="sortable" data-col="2" data-type="number" role="button" aria-sort="none">
+                Licence <i class="bi bi-arrow-down-up sort-icon text-muted"></i>
+            </th>
             <th class="text-center">Action</th>
         </tr>
     </thead>
@@ -148,6 +154,64 @@
     </tbody>
 </table>
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const table = document.getElementById('playersTable');
+            const tbody = table.tBodies[0];
+            const headers = table.querySelectorAll('th.sortable');
+            const collator = new Intl.Collator('fr', { sensitivity: 'base', numeric: true });
+
+            const cellValue = (row, col) => {
+                const cell = row.cells[col];
+                const input = cell.querySelector('input');
+                return (input ? input.value : cell.textContent).trim();
+            };
+
+            const resetIcons = () => {
+                headers.forEach(h => {
+                    h.dataset.dir = '';
+                    h.setAttribute('aria-sort', 'none');
+                    const icon = h.querySelector('.sort-icon');
+                    icon.className = 'bi bi-arrow-down-up sort-icon text-muted';
+                });
+            };
+
+            headers.forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = parseInt(th.dataset.col, 10);
+                    const isNumber = th.dataset.type === 'number';
+                    const dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
+                    const mult = dir === 'asc' ? 1 : -1;
+
+                    resetIcons();
+                    th.dataset.dir = dir;
+                    th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+                    th.querySelector('.sort-icon').className =
+                        'bi sort-icon ' + (dir === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill');
+
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    rows.sort((a, b) => {
+                        const va = cellValue(a, col);
+                        const vb = cellValue(b, col);
+
+                        if (isNumber) {
+                            const na = va === '' ? NaN : Number(va);
+                            const nb = vb === '' ? NaN : Number(vb);
+                            if (isNaN(na) && isNaN(nb)) return 0;
+                            if (isNaN(na)) return 1;   // valeurs vides toujours en bas
+                            if (isNaN(nb)) return -1;
+                            return (na - nb) * mult;
+                        }
+                        return collator.compare(va, vb) * mult;
+                    });
+
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+        });
+    </script>
 }

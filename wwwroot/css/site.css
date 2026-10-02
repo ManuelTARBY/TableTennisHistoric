@@ -99,3 +99,18 @@ body {
 .btn.btn-toggle-collapse[aria-expanded="false"] .icon-collapse {
     transform: rotate(-90deg) !important;
 }
+
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+th.sortable:hover {
+    background-color: rgba(0,0,0,.05);
+}
+
+th.sortable .sort-icon {
+    font-size: .75rem;
+    margin-left: .25rem;
+}

@@ -122,6 +122,7 @@ namespace TableTennisHistoric.Pages.Players
         private async Task LoadDataAsync()
         {
             Players = await _playerService.GetAllPlayerEditDTOAsync();
+            Players =Players.OrderBy(p => p.Last_name).ThenBy(p => p.First_name).ToList();
             var lists = await _playerService.GetCreatePlayerSelectListsAsync();
             Clubs = lists.Clubs;
             Seasons = lists.Seasons;
