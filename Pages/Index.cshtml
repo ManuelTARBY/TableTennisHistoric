@@ -189,7 +189,7 @@
 
             <thead class="table-light">
                 <tr>
-                    <th colspan="12" class="fw-bold fs-4 text-start table-primary">
+                    <th colspan="11" class="fw-bold fs-4 text-start table-primary">
                         @{
                             var monthName = System.Globalization.CultureInfo.CurrentCulture
                             .DateTimeFormat
@@ -219,7 +219,7 @@
                 {
                     <tr class="table-light fw-bold">
                         <td>Date</td>
-                        <td>Compétition</td>
+                        @* <td>Compétition</td> *@
                         <td>Stade</td>
                         <td class="text-center">Coeff.</td>
                         <td>Adversaire</td>
@@ -235,20 +235,25 @@
 
                 @{
                     DateOnly matchDate = matchDTO.Value.Count > 0 ? matchDTO.Value[0].Date_of_match : new DateOnly(2001, 1, 1);
+                    MatchDTO lastMatch = new MatchDTO();
                 }
                 @foreach (var match in matchDTO.Value)
                 {
-
-                    @if (match.Date_of_match != matchDate)
+                    @if (match.Date_of_match != matchDate || lastMatch.Competition != match.Competition || match.Id == matchDTO.Value[0].Id)
                     {
-                        <tr class="gap-row">
+                        @* <tr class="gap-row">
                             <td colspan="12" style="height:6px;"></td>
+                        </tr> *@
+                        <tr>
+                            <td colspan="11" class="text-center fw-bold fs-5">
+                                @match.Competition
+                            </td>
                         </tr>
                         matchDate = match.Date_of_match;
                     }
                     <tr title="@match.Comment">
                         <td>@match.Date_of_match.ToShortDateString()</td>
-                        <td>@match.Competition</td>
+                        @* <td>@match.Competition</td> *@
                         <td>@(match.Stage_name ?? "")</td>
                         <td class="text-center">@match.Coefficient.ToString("0.##")</td>
                         <td>
@@ -319,6 +324,7 @@
                             </div>
                         </td>
                     </tr>
+                    lastMatch = match;
                 }
             </tbody>
         }
